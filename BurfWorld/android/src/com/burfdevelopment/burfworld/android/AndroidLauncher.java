@@ -4,7 +4,7 @@ import android.os.Bundle;
 
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
-import com.burfdevelopment.burfworld.GameActivity;
+import com.burfdevelopment.burfworld.Activity.GameActivity;
 
 public class AndroidLauncher extends AndroidApplication {
 	@Override

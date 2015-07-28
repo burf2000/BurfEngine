@@ -7,7 +7,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.burfdevelopment.burfworld.GameActivity;
+import com.burfdevelopment.burfworld.Activity.GameActivity;
 
 /**
  * Created by burfies1 on 25/07/15.

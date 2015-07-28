@@ -1,9 +1,7 @@
 package com.burfdevelopment.burfworld.Screens;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
@@ -13,45 +11,40 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Array;
-import com.burfdevelopment.burfworld.AndroidGameControls;
-import com.burfdevelopment.burfworld.Player;
+import com.burfdevelopment.burfworld.Entity.GameObject;
 import com.burfdevelopment.burfworld.Skybox;
+import com.burfdevelopment.burfworld.Utils.ControlsController;
 
 /**
  * Created by burfies1 on 25/07/15.
  */
 public class GameRenderScreen  implements Screen {
 
-    public static AssetManager manager = new AssetManager();;
-
     private Stage stage;
     private SpriteBatch batch;
     private BitmapFont font;
     private PerspectiveCamera camera;
+    private ControlsController fps;
 
     public static int width() { return Gdx.graphics.getWidth(); }
     public static int height() { return Gdx.graphics.getHeight(); }
 
-    private Player player;
-    AndroidGameControls androidGameControls;
-
     private ModelBatch modelBatch;
     private Model box;
 
-    private Array<ModelInstance> boxInstance;
+    private Array<GameObject> boxInstance;
 
     @Override
     public void show() {
 
         //TODO create one asset manager
-        player = new Player();
-
         stage = new Stage();
         batch = new SpriteBatch();
         font = new BitmapFont();
@@ -59,51 +52,40 @@ public class GameRenderScreen  implements Screen {
 
         Skybox.createSkyBox();
 
-        float aspectRatio = (float) width() / (float) height();
-        camera = new PerspectiveCamera(67, 2f * aspectRatio, 2f);
-        camera.near = 0.1f;
+        camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        camera.near = 0.5f;
+        camera.far = 1000;
+        fps = new ControlsController(camera , this);
+        Gdx.input.setInputProcessor(fps);
 
         Cube();
 
-        //todo do something useful here
-        Skin skin = new Skin(Gdx.files.internal("skins/uiskin.json"));
-        androidGameControls = new AndroidGameControls();
-        androidGameControls.buildGameControls(stage, skin);
+//        //todo do something useful here
+//        Skin skin = new Skin(Gdx.files.internal("skins/uiskin.json"));
+//        androidGameControls = new AndroidGameControls();
+//        androidGameControls.buildGameControls(stage, skin);
     }
 
     public void update(){
-        updateControls();
+
+        fps.update();
+        camera.position.set(camera.position.x, 0.0f, camera.position.z);
 
         //TODO WE NEED TO DO SOME TIME THING
-        if(!AndroidGameControls.isOnDesktop()){
-            androidGameControls.updateControls(player);
-        }
-    }
+        final float delta2 = Math.min(1f/30f, Gdx.graphics.getDeltaTime());
 
-    public void updateControls(){
-        //Desktop controls - I guess they could be used with a BlueTooth keyboard on Android.
-
-        if(Gdx.input.isKeyPressed(Input.Keys.W)) player.moveForward();
-        if(Gdx.input.isKeyPressed(Input.Keys.S)) player.moveBackward();
-        if(Gdx.input.isKeyPressed(Input.Keys.A)) player.moveLeft();
-        if(Gdx.input.isKeyPressed(Input.Keys.D)) player.moveRight();
-
-        if(Gdx.input.isKeyPressed(Input.Keys.Q)) Gdx.app.exit();
-
-        if(Gdx.input.isKeyPressed(Input.Keys.LEFT))  player.turnLeft();
-        if(Gdx.input.isKeyPressed(Input.Keys.RIGHT)) player.turnRight();
-        if(Gdx.input.isKeyPressed(Input.Keys.UP))  player.lookUp();
-        if(Gdx.input.isKeyPressed(Input.Keys.DOWN)) player.lookDown();
+        //updateControls();
+//
+//        //TODO WE NEED TO DO SOME TIME THING
+//        if(!AndroidGameControls.isOnDesktop()){
+//            androidGameControls.updateControls(player);
+//        }
     }
 
     @Override
     public void render(float delta) {
 
         update();
-
-        //TODO WE NEED TO DO SOME TIME THING
-        final float delta2 = Math.min(1f/30f, Gdx.graphics.getDeltaTime());
-
 
         Gdx.gl20.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
@@ -117,12 +99,6 @@ public class GameRenderScreen  implements Screen {
         Gdx.gl20.glCullFace(GL20.GL_NONE);
         Gdx.gl20.glEnable(GL20.GL_DEPTH_TEST);
 
-        //TODO first person camera?
-        //set the camera to the players position and rotation.
-        camera.position.set(player.getPos());
-        camera.lookAt(player.getPos().x + (float) Math.sin(Math.toRadians(player.getYaw())), player.getPos().y - player.getPitch(), player.getPos().z - (float) Math.cos(Math.toRadians(player.getYaw())));
-        camera.update();
-
         // Like spriteBatch, just with models!  pass in the box Instance and the environment
         modelBatch.begin(camera);
 
@@ -135,7 +111,6 @@ public class GameRenderScreen  implements Screen {
 
         modelBatch.end();
 
-
         //TODO Whats this for
         stage.getViewport().update(width(), height(), true);
         stage.act(delta);
@@ -146,7 +121,7 @@ public class GameRenderScreen  implements Screen {
 
     @Override
     public void resize(int width, int height) {
-
+        //camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
 
     @Override
@@ -171,9 +146,41 @@ public class GameRenderScreen  implements Screen {
 
     public void drawFPS() {
         stage.getBatch().begin();
-        font.draw(stage.getBatch(), "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, Gdx.graphics.getHeight() - 10); //
+        font.draw(stage.getBatch(), "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, Gdx.graphics.getHeight() - 10);
+        font.draw(stage.getBatch(), "Po: " + camera.position.y, 10, Gdx.graphics.getHeight() - 30);
         stage.getBatch().end();
     }
+
+    public int getObject (int screenX, int screenY) {
+
+        int result = -1;
+        float distance = -1;
+
+        Ray ray = camera.getPickRay(screenX, screenY);
+        Vector3 pos = new Vector3(camera.position);
+
+        for (int i = 0; i < boxInstance.size; i++) {
+
+            GameObject instance = boxInstance.get(i);
+            instance.transform.getTranslation(pos);
+
+            float dist2 = ray.origin.dst2(pos);
+            if (distance >= 0f && dist2 > distance) continue;
+
+            if (Intersector.intersectRayBoundsFast(ray, pos, instance.dimensions)) {
+                result = i;
+                distance = dist2;
+            }
+        }
+
+        if (result > -1)
+        {
+            boxInstance.removeIndex(result);
+        }
+
+        return 1;
+    };
+
 
     public void Cube() {
 
@@ -199,21 +206,23 @@ public class GameRenderScreen  implements Screen {
         // However, you need an instance to actually render it.  The instance contains all the
         // positioning information ( and more ).  Remember Model==heavy ModelInstance==Light
 
-        int c = 10;
+        int c = 5;
         for (int x = 0; x < c; x ++ ) {
 
             for (int y = 0; y < c; y ++ ) {
 
                 for (int z = 0; z < c; z ++ ) {
 
-                    boxInstance.add(new ModelInstance(box,x,y,z));
+                    GameObject m = new GameObject(box,x,y,z);
+                    boxInstance.add(m);
                 }
 
             }
 
         }
 
-
-
     }
+
 }
+
+

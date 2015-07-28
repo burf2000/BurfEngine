@@ -11,7 +11,6 @@ import com.badlogic.gdx.graphics.g3d.attributes.DepthTestAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * @author Caresi Labs
@@ -108,9 +107,6 @@ public class Skybox {
 		enabled = true;
 	}
 
-	public static void createSkySphere () {
-		throw new NotImplementedException();
-	}
 
 	private static final Vector3 tmp = new Vector3();
 	private static final Quaternion q = new Quaternion();

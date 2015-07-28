@@ -1,8 +1,10 @@
-package com.burfdevelopment.burfworld;
+package com.burfdevelopment.burfworld.Activity;
 
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Game;
+import com.burfdevelopment.burfworld.Networking.Parse;
 import com.burfdevelopment.burfworld.Screens.MainMenuScreen;
+import com.burfdevelopment.burfworld.Skybox;
 
 public class GameActivity extends Game implements ApplicationListener {
 
@@ -15,6 +17,10 @@ public class GameActivity extends Game implements ApplicationListener {
 
 		mainMenu = new MainMenuScreen();
 		setScreen(mainMenu);
+
+		Parse p = new Parse();
+		p.add_net_score();
+
 	}
 
 	@Override
