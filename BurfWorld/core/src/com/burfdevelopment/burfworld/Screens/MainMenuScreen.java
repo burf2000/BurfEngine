@@ -5,9 +5,13 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextArea;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.burfdevelopment.burfworld.Activity.GameActivity;
+import com.burfdevelopment.burfworld.Utils.Gui;
 
 /**
  * Created by burfies1 on 25/07/15.
@@ -17,12 +21,13 @@ public class MainMenuScreen  implements Screen {
     private Stage stage = new Stage();
     private Table table = new Table();
 
-    private Skin skin = new Skin(Gdx.files.internal("skins/uiskin.json"));
+    private TextButton buttonPlay = new TextButton("Play", Gui.getSkin());
+    private TextButton buttonExit = new TextButton("Exit", Gui.getSkin());
+    private TextArea username = new TextArea("", Gui.getSkin());
+    private Label title = new Label("Burf World",Gui.getSkin());
 
-    private TextButton buttonPlay = new TextButton("Play", skin);
-    private TextButton buttonExit = new TextButton("Exit", skin);
-    private TextArea username = new TextArea("", skin);
-    private Label title = new Label("Burf World",skin);
+    public static int width() { return Gdx.graphics.getWidth(); }
+    public static int height() { return Gdx.graphics.getHeight(); }
 
     @Override
     public void render(float delta) {
@@ -58,9 +63,9 @@ public class MainMenuScreen  implements Screen {
         //The elements are displayed in the order you add them.
         //The first appear on top, the last at the bottom.
         table.add(title).padBottom(40).row();
-        table.add(username).size(150,32).padBottom(20).row();
-        table.add(buttonPlay).size(150,30).padBottom(10).row();
-        table.add(buttonExit).size(150,30).padBottom(10).row();
+        table.add(username).size(width() / 6,height() / 10).padBottom(20).row();
+        table.add(buttonPlay).size(width() / 6,height() / 10).padBottom(10).row();
+        table.add(buttonExit).size(width() / 6,height() / 10).padBottom(10).row();
 
         table.setFillParent(true);
         stage.addActor(table);
@@ -84,6 +89,5 @@ public class MainMenuScreen  implements Screen {
     @Override
     public void dispose() {
         stage.dispose();
-        skin.dispose();
     }
 }

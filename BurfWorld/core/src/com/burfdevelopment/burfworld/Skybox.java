@@ -26,6 +26,7 @@ public class Skybox {
 	//TODO Entity list for things like Clouds, and future weather system
 	//public static Array<ModelInstance> skyEntities;
 	public static ModelInstance modelInstance;
+	//TODO MOVE TO static
 	public static AssetManager manager;
 
 	private static boolean enabled;
@@ -69,7 +70,6 @@ public class Skybox {
 
 	public static void createSkyBox () { //Texture xpos, Texture xneg, Texture ypos, Texture yneg, Texture zpos, Texture zneg
 		modelInstance = new ModelInstance(model, "Skycube");
-
 
 		Texture xpos = manager.get("xpos.png", Texture.class);
 		Texture xneg = manager.get("xneg.png", Texture.class);

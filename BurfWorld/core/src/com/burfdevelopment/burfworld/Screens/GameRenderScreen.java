@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector3;
@@ -27,7 +28,7 @@ import com.burfdevelopment.burfworld.Utils.ControlsController;
  */
 public class GameRenderScreen  implements Screen {
 
-    private Stage stage;
+    private Stage stage = new Stage();
     private SpriteBatch batch;
     private BitmapFont font;
     private PerspectiveCamera camera;
@@ -38,6 +39,7 @@ public class GameRenderScreen  implements Screen {
 
     private ModelBatch modelBatch;
     private Model box;
+    private Model floor;
 
     private Array<GameObject> boxInstance;
 
@@ -45,7 +47,6 @@ public class GameRenderScreen  implements Screen {
     public void show() {
 
         //TODO create one asset manager
-        stage = new Stage();
         batch = new SpriteBatch();
         font = new BitmapFont();
         font.setColor(Color.WHITE);
@@ -55,31 +56,18 @@ public class GameRenderScreen  implements Screen {
         camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         camera.near = 0.5f;
         camera.far = 1000;
-        fps = new ControlsController(camera , this);
-        Gdx.input.setInputProcessor(fps);
+        fps = new ControlsController(camera , this, stage);
+        //Gdx.input.setInputProcessor(fps);
 
         Cube();
 
-//        //todo do something useful here
-//        Skin skin = new Skin(Gdx.files.internal("skins/uiskin.json"));
-//        androidGameControls = new AndroidGameControls();
-//        androidGameControls.buildGameControls(stage, skin);
     }
 
     public void update(){
-
+        fps.updateControls();
         fps.update();
         camera.position.set(camera.position.x, 0.0f, camera.position.z);
 
-        //TODO WE NEED TO DO SOME TIME THING
-        final float delta2 = Math.min(1f/30f, Gdx.graphics.getDeltaTime());
-
-        //updateControls();
-//
-//        //TODO WE NEED TO DO SOME TIME THING
-//        if(!AndroidGameControls.isOnDesktop()){
-//            androidGameControls.updateControls(player);
-//        }
     }
 
     @Override
@@ -96,7 +84,7 @@ public class GameRenderScreen  implements Screen {
         Gdx.gl20.glEnable(GL20.GL_TEXTURE_2D);
         Gdx.gl20.glEnable(GL20.GL_BLEND);
         Gdx.gl20.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-        Gdx.gl20.glCullFace(GL20.GL_NONE);
+        Gdx.gl20.glCullFace(GL20.GL_BACK);
         Gdx.gl20.glEnable(GL20.GL_DEPTH_TEST);
 
         // Like spriteBatch, just with models!  pass in the box Instance and the environment
@@ -151,6 +139,40 @@ public class GameRenderScreen  implements Screen {
         stage.getBatch().end();
     }
 
+//    public void hitSomething(int screenX, int screenY) {
+//        Ray pickRay = camera.getPickRay(screenX, screenY);
+//
+//        // A bounding box for each of your minecraft blocks
+//        BoundingBox boundingBox = new BoundingBox();
+//        Vector3 intersection = new Vector3();
+//        if (Intersector.intersectRayBounds(pickRay, boundingBox, intersection)) {
+//            // The ray has hit the box, intersection is the point it hit
+//            Gdx.app.log("MyTag", "my informative message");
+//        } else {
+//            // Not hit
+//            Gdx.app.log("MyTag", "my informative message2");
+//        }
+//    }
+
+//    public void hitSomething(int screenX, int screenY) {
+//        // If you are only using a camera
+//        Ray pickRay = camera.getPickRay(screenX, screenY);
+////        // If your camera is managed by a viewport
+//        //Ray pickRay = stage.getViewport().getPickRay(screenX, screenY);
+//
+//        // we want to check a collision only on a certain plane, in this case the X/Z plane
+//        Plane plane = new Plane(new Vector3(0, -1, 0), -1);
+//        Vector3 intersection = new Vector3();
+//
+//        Intersector.intersectRayPlane(pickRay, plane, intersection);
+//
+//        int x = (int)intersection.x;
+//        int z = (int)intersection.z;
+//
+//        Gdx.app.log("MyTag", "x " + x  + " z "+ z);
+//
+//    }
+
     public int getObject (int screenX, int screenY) {
 
         int result = -1;
@@ -158,24 +180,40 @@ public class GameRenderScreen  implements Screen {
 
         Ray ray = camera.getPickRay(screenX, screenY);
         Vector3 pos = new Vector3(camera.position);
-
+        Vector3 v = new Vector3();
+        
         for (int i = 0; i < boxInstance.size; i++) {
 
             GameObject instance = boxInstance.get(i);
             instance.transform.getTranslation(pos);
+            instance.updateBox();
 
             float dist2 = ray.origin.dst2(pos);
             if (distance >= 0f && dist2 > distance) continue;
 
-            if (Intersector.intersectRayBoundsFast(ray, pos, instance.dimensions)) {
+
+
+            if (Intersector.intersectRayBounds(ray, instance.bounds, v))
+            {
                 result = i;
                 distance = dist2;
+
+
             }
+
+//            if (Intersector.intersectRayBoundsFast(ray, pos, instance.dimensions)) {
+//                result = i;
+//                distance = dist2;
+//
+//
+//            }
         }
 
         if (result > -1)
         {
-            boxInstance.removeIndex(result);
+            Gdx.app.log("MyTag 2", "x " + v.x + " y " + v.y +  " z " + v.z);
+            boxInstance.get(result).materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
+            //boxInstance.removeIndex(result);
         }
 
         return 1;
@@ -199,7 +237,7 @@ public class GameRenderScreen  implements Screen {
         // And let openGL know we are interested in the Position and Normal channels
         box = modelBuilder.createBox(1f, 1f, 1f,
                 new Material(ColorAttribute.createDiffuse(Color.BLUE)),
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal
+                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates
         );
 
         // A model holds all of the information about an, um, model, such as vertex data and texture info
@@ -213,13 +251,26 @@ public class GameRenderScreen  implements Screen {
 
                 for (int z = 0; z < c; z ++ ) {
 
-                    GameObject m = new GameObject(box,x,y,z);
+                    GameObject m = new GameObject(box,new Vector3(x,y,z));
                     boxInstance.add(m);
                 }
 
             }
 
         }
+
+        Material matWhite = new Material(ColorAttribute.createDiffuse(Color.WHITE));
+
+        float size = 10;
+        modelBuilder.begin();
+        MeshPartBuilder tileBuilder;
+        tileBuilder = modelBuilder.part("top", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates, matWhite);
+        tileBuilder.rect(-size, 0.1f, size,   size, 0.1f, size,    size, 0.1f, -size,  -size, 0.1f, -size,  0f, 1f, 0f);
+        floor = modelBuilder.end();
+
+        GameObject m = new GameObject(floor, new Vector3(0,-1,0));
+        boxInstance.add(m);
+
 
     }
 
