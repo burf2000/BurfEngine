@@ -24,6 +24,8 @@ public class ControlsController extends FirstPersonCameraController {
     public static int width() { return Gdx.graphics.getWidth(); }
     public static int height() { return Gdx.graphics.getHeight(); }
 
+    public static boolean hasMoved;
+
     public ControlsController(Camera camera) {
         super(camera);
     }
@@ -99,9 +101,23 @@ public class ControlsController extends FirstPersonCameraController {
     }
 
     @Override
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+        hasMoved = true;
+        return super.touchDragged(screenX, screenY, pointer);
+    }
+
+    @Override
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        hasMoved = false;
+        return super.touchDown(screenX, screenY, pointer, button);
+    }
+
+    @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        gameRenderScreen.getObject(screenX, screenY);
-        //gameRenderScreen.hitSomething(screenX,screenY);
+        if (hasMoved == false)
+        {
+            gameRenderScreen.getObject(screenX, screenY);
+        }
 
         return super.touchUp(screenX, screenY, pointer, button);
     }

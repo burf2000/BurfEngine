@@ -1,0 +1,9 @@
+package com.burfdevelopment.burfworld;
+
+/**
+ * Created by burfies1 on 07/08/15.
+ */
+public class Constants {
+
+    public static final int chunkSize = 16;
+}

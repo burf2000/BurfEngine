@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
@@ -16,9 +15,15 @@ import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.async.AsyncExecutor;
+import com.badlogic.gdx.utils.async.AsyncTask;
+import com.burfdevelopment.burfworld.Constants;
+import com.burfdevelopment.burfworld.Entity.Chunk;
+import com.burfdevelopment.burfworld.Entity.ChunkObject;
 import com.burfdevelopment.burfworld.Entity.GameObject;
 import com.burfdevelopment.burfworld.Skybox;
 import com.burfdevelopment.burfworld.Utils.ControlsController;
@@ -29,7 +34,7 @@ import com.burfdevelopment.burfworld.Utils.ControlsController;
 public class GameRenderScreen  implements Screen {
 
     private Stage stage = new Stage();
-    private SpriteBatch batch;
+    //private SpriteBatch batch;
     private BitmapFont font;
     private PerspectiveCamera camera;
     private ControlsController fps;
@@ -42,12 +47,21 @@ public class GameRenderScreen  implements Screen {
     private Model floor;
 
     private Array<GameObject> boxInstance;
+    private Array<Chunk> chunks;
+    private Vector3 oldPosition = new Vector3();
+
+    private static final float TICK =  30 / 60f; //1 / 60
+    private float accum = 0.0f;
+
+
+    private static AsyncExecutor executor = new AsyncExecutor(1);
+    private static AsyncTask task;
 
     @Override
     public void show() {
 
         //TODO create one asset manager
-        batch = new SpriteBatch();
+        //batch = new SpriteBatch();
         font = new BitmapFont();
         font.setColor(Color.WHITE);
 
@@ -57,16 +71,34 @@ public class GameRenderScreen  implements Screen {
         camera.near = 0.5f;
         camera.far = 1000;
         fps = new ControlsController(camera , this, stage);
-        //Gdx.input.setInputProcessor(fps);
+        //Gdx.input.setInputProcessor(fps)
 
-        Cube();
+        //TODO move
+        modelBatch = new ModelBatch();
+        boxInstance = new Array();
+        chunks = new Array();
+
+        createChunk(0, 0, camera.direction);
+        task= new AsyncTask() {
+            @Override
+            public Object call() throws Exception {
+                createChunk((int) camera.position.x / 16, (int) camera.position.z / 16, camera.direction);
+
+                return null;
+            }
+        };
+
 
     }
 
     public void update(){
+
+        oldPosition.set(camera.position);
         fps.updateControls();
+        camera.position.set(camera.position.x, 1.5f, camera.position.z);
         fps.update();
-        camera.position.set(camera.position.x, 0.0f, camera.position.z);
+        // causing issue
+        //
 
     }
 
@@ -81,20 +113,66 @@ public class GameRenderScreen  implements Screen {
         //Do all your basic OpenGL ES setup to start the screen render.
         Gdx.gl20.glClearColor(0.0f, 0.3f, 0.5f, 1);
         Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
-        Gdx.gl20.glEnable(GL20.GL_TEXTURE_2D);
-        Gdx.gl20.glEnable(GL20.GL_BLEND);
-        Gdx.gl20.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-        Gdx.gl20.glCullFace(GL20.GL_BACK);
-        Gdx.gl20.glEnable(GL20.GL_DEPTH_TEST);
 
         // Like spriteBatch, just with models!  pass in the box Instance and the environment
+        //Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
         modelBatch.begin(camera);
 
         Skybox.update(camera.position);
         modelBatch.render(Skybox.modelInstance);
 
-        for (int i = 0; i < boxInstance.size; i ++ ) {
-            modelBatch.render(boxInstance.get(i));
+//        float cubeSize = 1.2f;
+
+        accum += Gdx.graphics.getDeltaTime();
+
+        if(accum >= TICK)
+        {
+            //Gdx.app.log("MyTag 2", "X " + (int)camera.position.x / 16 + " z " + (int)camera.position.z / 16);
+            //Gdx.app.log("MyTag 2", "x" + camera.direction.toString());
+            Gdx.app.log("MyTag 2", "count" + chunks.size);
+            accum = 0.0f;
+
+            executor.submit(task);
+
+        }
+
+//        for (int i = 0; i < boxInstance.size; i ++ ) {
+//            modelBatch.render(boxInstance.get(i));
+//
+//
+//            if(accum >= TICK)
+//            {
+//                Date date = new Date(TimeUtils.millis());
+//                Gdx.app.log("FIRE", "Collison detect" + date);
+//
+//
+////                if (boxInstance.get(i).checkCollison == true)
+////                {
+////                    if (camera.position.x >  boxInstance.get(i).getCenter().x - cubeSize  &&
+////                            //camera.position.y >  boxInstance.get(i).getCenter().y - cubeSize  &&
+////                            camera.position.z >  boxInstance.get(i).getCenter().z - cubeSize  &&
+////                            camera.position.x <  boxInstance.get(i).getCenter().x + cubeSize &&
+////                            //camera.position.y >  boxInstance.get(i).getCenter().y + cubeSize  &&
+////                            camera.position.z <  boxInstance.get(i).getCenter().z + cubeSize
+////                            )
+////                    {
+////
+////
+////                        camera.position.set(oldPosition);
+////                        Gdx.app.log("MyTag 2", "BANG");
+////                    }
+////                }
+////
+//                accum = 0.0f;
+//            }
+
+
+//        }
+
+
+
+        for (int i = 0; i < chunks.size; i ++ ) {
+                chunks.get(i).render(modelBatch, camera);
         }
 
         modelBatch.end();
@@ -107,9 +185,12 @@ public class GameRenderScreen  implements Screen {
         drawFPS();
     }
 
+
+
     @Override
     public void resize(int width, int height) {
         //camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        stage.getViewport().update(width, height, false);
     }
 
     @Override
@@ -130,12 +211,21 @@ public class GameRenderScreen  implements Screen {
     @Override
     public void dispose() {
 
+        boxInstance.clear();
+        stage.dispose();
+        font.dispose();
+        modelBatch.dispose();
+        box.dispose();
+        floor.dispose();
+        Skybox.disable();
+
     }
 
     public void drawFPS() {
+
         stage.getBatch().begin();
         font.draw(stage.getBatch(), "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, Gdx.graphics.getHeight() - 10);
-        font.draw(stage.getBatch(), "Po: " + camera.position.y, 10, Gdx.graphics.getHeight() - 30);
+        font.draw(stage.getBatch(), "Mem: " + Gdx.app.getJavaHeap() / 1000000f + " " + Gdx.app.getNativeHeap() / 1000000f,  10, Gdx.graphics.getHeight() - 30);
         stage.getBatch().end();
     }
 
@@ -176,56 +266,61 @@ public class GameRenderScreen  implements Screen {
     public int getObject (int screenX, int screenY) {
 
         int result = -1;
+        int result2 = -1;
         float distance = -1;
+        BoundingBox bounds = new BoundingBox();
 
         Ray ray = camera.getPickRay(screenX, screenY);
         Vector3 pos = new Vector3(camera.position);
         Vector3 v = new Vector3();
         
-        for (int i = 0; i < boxInstance.size; i++) {
+        for (int i = 0; i < chunks.size; i++) {
 
-            GameObject instance = boxInstance.get(i);
-            instance.transform.getTranslation(pos);
-            instance.updateBox();
+            Chunk chunkInstance = chunks.get(i);
 
-            float dist2 = ray.origin.dst2(pos);
-            if (distance >= 0f && dist2 > distance) continue;
+            for (int a = 0; a < chunkInstance.cubeInstance.size; a++) {
 
+                ChunkObject cubeInstance = chunkInstance.cubeInstance.get(a);
 
+                if (cubeInstance.model != null)
+                {
+                    cubeInstance.model.transform.getTranslation(pos);
+                    cubeInstance.model.calculateBoundingBox(bounds);
+                    bounds.set(bounds.min.add(cubeInstance.getCenter().x, cubeInstance.getCenter().y, cubeInstance.getCenter().z), bounds.max.add(cubeInstance.getCenter().x, cubeInstance.getCenter().y, cubeInstance.getCenter().z));
 
-            if (Intersector.intersectRayBounds(ray, instance.bounds, v))
-            {
-                result = i;
-                distance = dist2;
+                    //Gdx.app.log("MyTag 2", "BLLA" + bounds.toString());
 
+                    float dist2 = ray.origin.dst2(pos);
+                    if (distance >= 0f && dist2 > distance) continue;
 
+                    if (Intersector.intersectRayBounds(ray, bounds, v))
+                    {
+                        Gdx.app.log("MyTag 2","BLLA");
+                        result = i;
+                        result2 = a;
+                        distance = dist2;
+                    }
+                }
             }
 
-//            if (Intersector.intersectRayBoundsFast(ray, pos, instance.dimensions)) {
-//                result = i;
-//                distance = dist2;
-//
-//
-//            }
         }
 
         if (result > -1)
         {
-            Gdx.app.log("MyTag 2", "x " + v.x + " y " + v.y +  " z " + v.z);
-            boxInstance.get(result).materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
-            //boxInstance.removeIndex(result);
+            Gdx.app.log("MyTag 2", "x " + v.x + " y " + v.y + " z " + v.z);
+
+            chunks.get(result).cubeInstance.get(result2).model.materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
+
+            //boxInstance.get(result).materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
+            //chunks.removeIndex(result);
         }
 
         return 1;
     };
 
 
-    public void Cube() {
-
-        boxInstance = new Array();
-//		cInstance = new Array();
-//		sInstance = new Array();
-
+    public void cubes()
+    {
         // A ModelBatch is like a SpriteBatch, just for models.  Use it to batch up geometry for OpenGL
         modelBatch = new ModelBatch();
 
@@ -244,14 +339,14 @@ public class GameRenderScreen  implements Screen {
         // However, you need an instance to actually render it.  The instance contains all the
         // positioning information ( and more ).  Remember Model==heavy ModelInstance==Light
 
-        int c = 5;
+        int c = 40;
         for (int x = 0; x < c; x ++ ) {
 
             for (int y = 0; y < c; y ++ ) {
 
                 for (int z = 0; z < c; z ++ ) {
 
-                    GameObject m = new GameObject(box,new Vector3(x,y,z));
+                    GameObject m = new GameObject(box,new Vector3(x + 2,y,z), true);
                     boxInstance.add(m);
                 }
 
@@ -268,8 +363,165 @@ public class GameRenderScreen  implements Screen {
         tileBuilder.rect(-size, 0.1f, size,   size, 0.1f, size,    size, 0.1f, -size,  -size, 0.1f, -size,  0f, 1f, 0f);
         floor = modelBuilder.end();
 
-        GameObject m = new GameObject(floor, new Vector3(0,-1,0));
+        GameObject m = new GameObject(floor, new Vector3(0,-1,0), false);
         boxInstance.add(m);
+    }
+
+
+    public void markAddChunk(float x, float z)
+    {
+        boolean found = false;
+        for (int i = 0; i < chunks.size; i ++ ) {
+
+            if(chunks.get(i).position.x == (x * Constants.chunkSize) && chunks.get(i).position.z == (z * Constants.chunkSize))
+            {
+                chunks.get(i).needed = true;
+                found = true;
+            }
+        }
+
+        if (found == false)
+        {
+            chunks.add(new Chunk(new Vector3((x * Constants.chunkSize ),0,(z * Constants.chunkSize))));
+        }
+    }
+
+    public void createChunk(float x, float z, Vector3 direction) {
+
+        for (int i = 0; i < chunks.size; i ++ ) {
+            chunks.get(i).needed = false;
+        }
+
+        int size = 5;
+
+        for (int xx = 0 ; xx < size ; xx++)
+        {
+            for (int zz = 0 ; zz < size ; zz++)
+            {
+                markAddChunk(x + xx - ((size - 1) /2),z + zz - ((size - 1) /2));
+            }
+        }
+
+
+
+//        if (direction.z < 0)
+//        {
+//            //Gdx.app.log("MyTag 2", "Fire A");
+//            if (direction.x < -0.5)
+//            {
+//                //Gdx.app.log("MyTag 2", "Fire 1");
+//
+////                markAddChunk(x - 2, z);
+////                markAddChunk(x - 2, z - 1);
+////                markAddChunk(x - 2, z + 1);
+//
+//                markAddChunk(x - 1, z);
+//                markAddChunk(x - 1, z - 1);
+//                markAddChunk(x - 1, z + 1);
+//
+//                markAddChunk(x, z - 1);
+//                markAddChunk(x , z + 1);
+//            }
+//            else if  (direction.x > 0.5)
+//            {
+//
+//                //Gdx.app.log("MyTag 2", "Fire 2");
+//
+////                markAddChunk(x + 2, z);
+////                markAddChunk(x + 2, z - 1);
+////                markAddChunk(x + 2, z + 1);
+//
+//                markAddChunk(x + 1, z);
+//                markAddChunk(x + 1, z - 1);
+//                markAddChunk(x + 1, z + 1);
+//
+//                markAddChunk(x, z - 1);
+//                markAddChunk(x , z + 1);
+//
+//            }
+//            else
+//            {
+//
+//                //Gdx.app.log("MyTag 2", "Fire 3");
+////                markAddChunk(x, z - 2);
+////                markAddChunk(x - 1, z - 2);
+////                markAddChunk(x + 1, z - 2);
+//
+//                markAddChunk(x, z - 1);
+//                markAddChunk(x - 1, z - 1);
+//                markAddChunk(x + 1, z - 1);
+//
+//                markAddChunk(x - 1, z );
+//                markAddChunk(x + 1, z );
+//            }
+//
+//        }
+//        else
+//        {
+//            //Gdx.app.log("MyTag 2", "Fire B");
+//
+//            if (direction.x < -0.5)
+//            {
+//
+//                //Gdx.app.log("MyTag 2", "Fire 2");
+////                markAddChunk(x - 2, z);
+////                markAddChunk(x - 2, z - 1);
+////                markAddChunk(x - 2, z + 1);
+//
+//                markAddChunk(x - 1, z);
+//                markAddChunk(x - 1, z - 1);
+//                markAddChunk(x - 1, z + 1);
+//
+//                markAddChunk(x, z - 1);
+//                markAddChunk(x , z + 1);
+//            }
+//            else if (direction.x > 0.5)
+//            {
+//
+//                //Gdx.app.log("MyTag 2", "Fire 3");
+////                markAddChunk(x + 2,z);
+////                markAddChunk(x + 2, z - 1);
+////                markAddChunk(x + 2, z + 1);
+//
+//                markAddChunk(x + 1,z);
+//                markAddChunk(x + 1, z - 1);
+//                markAddChunk(x + 1, z + 1);
+//
+//                markAddChunk(x, z - 1);
+//                markAddChunk(x , z + 1);
+//            }
+//            else
+//            {
+//
+//                //Gdx.app.log("MyTag 2", "Fire 4");
+////                markAddChunk(x,z + 2);
+////                markAddChunk(x - 1, z + 2);
+////                markAddChunk(x + 1, z + 2);
+//
+//                markAddChunk(x,z + 1);
+//                markAddChunk(x - 1, z + 1);
+//                markAddChunk(x + 1, z + 1);
+//
+//                markAddChunk(x - 1, z );
+//                markAddChunk(x + 1, z );
+//            }
+//        }
+
+        for (int i = 0; i < chunks.size; i ++ ) {
+
+            if (chunks.get(i).needed == false)
+            {
+                chunks.get(i).dispose();
+                chunks.removeIndex(i);
+            }
+
+        }
+
+        //chunks.add(new Chunk(new Vector3(0,0,-16)));
+        //chunks.add(new Chunk(new Vector3(16,0,0)));
+        //chunks.add(new Chunk(new Vector3(-16,0,0)));
+
+
 
 
     }
