@@ -137,6 +137,7 @@ public class GameRenderScreen  implements Screen {
     @Override
     public void render(float delta) {
 
+        Constants.renderCount = 0;
         update(); // controls
 
         Gdx.gl20.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -214,7 +215,7 @@ public class GameRenderScreen  implements Screen {
     public void drawFPS() {
 
         stage.getBatch().begin();
-        font.draw(stage.getBatch(), "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, Gdx.graphics.getHeight() - 10);
+        font.draw(stage.getBatch(), "FPS: " + Gdx.graphics.getFramesPerSecond() +" Cube Count " + Constants.cubeCount +  " rend Count " + Constants.renderCount, 10, Gdx.graphics.getHeight() - 10);
         font.draw(stage.getBatch(), "Mem: " + Gdx.app.getJavaHeap() / 1000000f + " " + Gdx.app.getNativeHeap() / 1000000f,  10, Gdx.graphics.getHeight() - 30);
         stage.getBatch().end();
     }

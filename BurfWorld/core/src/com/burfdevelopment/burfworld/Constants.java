@@ -6,4 +6,6 @@ package com.burfdevelopment.burfworld;
 public class Constants {
 
     public static final int chunkSize = 16;
+    public static int renderCount;
+    public static int cubeCount;
 }

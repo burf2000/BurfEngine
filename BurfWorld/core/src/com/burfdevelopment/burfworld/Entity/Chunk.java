@@ -63,6 +63,7 @@ public class Chunk {
                     }
                     else
                     {
+                        Constants.cubeCount +=1;
                         m = new ChunkObject(cube,new Vector3(position.x + x - (Constants.chunkSize /2),position.y - y, position.z + z -  (Constants.chunkSize /2)));
                         m.model.materials.get(0).set(ColorAttribute.createDiffuse(color));
                         //m.model.materials.get(0).set(new IntAttribute(IntAttribute.CullFace, GL20.GL_BACK));
@@ -95,6 +96,7 @@ public class Chunk {
 
                 if (camera.frustum.boundsInFrustum(cubeInstance.get(i).getCenter().x,cubeInstance.get(i).getCenter().y,cubeInstance.get(i).getCenter().z,8,8,8))
                 {
+                    Constants.renderCount +=1;
                     modelBatch.render(cubeInstance.get(i).model);
                 }
                 else
