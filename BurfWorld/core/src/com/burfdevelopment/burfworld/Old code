@@ -88,7 +88,7 @@
 
 
 
-/        if (direction.z < 0)
+//        if (direction.z < 0)
 //        {
 //            //Gdx.app.log("MyTag 2", "Fire A");
 //            if (direction.x < -0.5)

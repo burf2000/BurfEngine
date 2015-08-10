@@ -6,20 +6,24 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Pool;
 import com.badlogic.gdx.utils.async.AsyncExecutor;
 import com.badlogic.gdx.utils.async.AsyncTask;
 import com.burfdevelopment.burfworld.Constants;
 import com.burfdevelopment.burfworld.Entity.Chunk;
 import com.burfdevelopment.burfworld.Entity.ChunkObject;
 import com.burfdevelopment.burfworld.Entity.GameObject;
+import com.burfdevelopment.burfworld.Entity.MeshBuilder;
 import com.burfdevelopment.burfworld.Skybox;
 import com.burfdevelopment.burfworld.Utils.ControlsController;
 
@@ -33,21 +37,44 @@ public class GameRenderScreen  implements Screen {
     private BitmapFont font;
     private PerspectiveCamera camera;
     private ControlsController fps;
+    private Environment lights;
 
     public static int width() { return Gdx.graphics.getWidth(); }
     public static int height() { return Gdx.graphics.getHeight(); }
 
-    private ModelBatch modelBatch;
-    private Array<GameObject> boxInstance;
-    private Array<Chunk> chunks;
-    private Vector3 oldPosition = new Vector3();
-
     private static final float TICK =  30 / 60f; //1 / 60
     private float accum = 0.0f;
 
-
     private static AsyncExecutor executor = new AsyncExecutor(1);
     private static AsyncTask task;
+
+    private ModelBatch modelBatch;
+    private Array<GameObject> boxInstance;
+    private Array<Chunk> chunks;
+    private Array<MeshBuilder> chunks2;
+
+    private Vector3 oldPosition = new Vector3();
+    private Array<Vector3> b = new Array<Vector3>();
+
+    public static Pool<ChunkObject> chunkPool = new Pool<ChunkObject>() {
+
+        @Override
+        protected ChunkObject newObject() {
+            //Gdx.app.log("CHUNK", "New Model");
+            return new ChunkObject();
+        }
+
+    };
+
+    public static Pool<ChunkObject> chunkPoolNoModel = new Pool<ChunkObject>() {
+
+        @Override
+        protected ChunkObject newObject() {
+            //Gdx.app.log("CHUNK", "New no modelw");
+            return new ChunkObject();
+        }
+
+    };
 
     @Override
     public void show() {
@@ -69,6 +96,7 @@ public class GameRenderScreen  implements Screen {
         modelBatch = new ModelBatch();
         boxInstance = new Array();
         chunks = new Array();
+        chunks2 = new Array();
 
         createChunk(0, 0, camera.direction);
         task= new AsyncTask() {
@@ -79,6 +107,12 @@ public class GameRenderScreen  implements Screen {
                 return null;
             }
         };
+
+        //Light..
+        lights = new Environment();
+        lights.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1.f));
+
+        lights.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, 1f, -0.8f, -0.2f));
 
 
     }
@@ -146,28 +180,35 @@ public class GameRenderScreen  implements Screen {
         //Do all your basic OpenGL ES setup to start the screen render.
         Gdx.gl20.glClearColor(0.0f, 0.3f, 0.5f, 1);
         Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+        Gdx.gl20.glEnable(GL20.GL_TEXTURE_2D);
+        Gdx.gl20.glEnable(GL20.GL_BLEND);
+        Gdx.gl20.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        Gdx.gl20.glCullFace(GL20.GL_BACK);
+        Gdx.gl20.glEnable(GL20.GL_DEPTH_TEST);
 
-        // Like spriteBatch, just with models!  pass in the box Instance and the environment
-        //Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
-        modelBatch.begin(camera);
-
-        Skybox.update(camera.position);
-        modelBatch.render(Skybox.modelInstance);
-        accum += Gdx.graphics.getDeltaTime();
-
-        if(accum >= TICK) // fire off chunk builder
-        {
-            Gdx.app.log("MyTag 2", "count" + chunks.size);
-            accum = 0.0f;
-            executor.submit(task);
-
+        for (int i = 0; i < chunks2.size; i ++ ) {
+            chunks2.get(i).render(camera);
         }
 
-        for (int i = 0; i < chunks.size; i ++ ) {
-                chunks.get(i).render(modelBatch, camera);
-        }
-
-        modelBatch.end();
+//        modelBatch.begin(camera);
+//
+//        Skybox.update(camera.position);
+//        modelBatch.render(Skybox.modelInstance);
+//        accum += Gdx.graphics.getDeltaTime();
+//
+//        if(accum >= TICK) // fire off chunk builder
+//        {
+//            Gdx.app.log("MyTag 2", "count" + chunks.size);
+//            accum = 0.0f;
+//            executor.submit(task);
+//
+//        }
+//
+//        for (int i = 0; i < chunks.size; i ++ ) {
+//                chunks.get(i).render(modelBatch, camera);
+//        }
+//
+//        modelBatch.end();
 
         //TODO Whats this for
         stage.getViewport().update(width(), height(), true);
@@ -216,7 +257,7 @@ public class GameRenderScreen  implements Screen {
 
         stage.getBatch().begin();
         font.draw(stage.getBatch(), "FPS: " + Gdx.graphics.getFramesPerSecond() +" Cube Count " + Constants.cubeCount +  " rend Count " + Constants.renderCount, 10, Gdx.graphics.getHeight() - 10);
-        font.draw(stage.getBatch(), "Mem: " + Gdx.app.getJavaHeap() / 1000000f + " " + Gdx.app.getNativeHeap() / 1000000f,  10, Gdx.graphics.getHeight() - 30);
+        font.draw(stage.getBatch(), "Mem: " + Gdx.app.getJavaHeap() / 1000000f + " " + Gdx.app.getNativeHeap() / 1000000f + " " + GameRenderScreen.chunkPool.getFree() + " " + GameRenderScreen.chunkPoolNoModel.getFree(),  10, Gdx.graphics.getHeight() - 30);
         stage.getBatch().end();
     }
 
@@ -248,7 +289,10 @@ public class GameRenderScreen  implements Screen {
                     //Gdx.app.log("MyTag 2", "BLLA" + bounds.toString());
 
                     float dist2 = ray.origin.dst2(pos);
-                    if (distance >= 0f && dist2 > distance) continue;
+                    //TODO move out
+                    if (distance >= 0f && dist2 > distance || dist2 > 80) continue;
+
+                    Gdx.app.log("Distance","Distance " + dist2);
 
                     if (Intersector.intersectRayBounds(ray, bounds, v))
                     {
@@ -265,11 +309,13 @@ public class GameRenderScreen  implements Screen {
         if (result > -1)
         {
             Gdx.app.log("MyTag 2", "x " + v.x + " y " + v.y + " z " + v.z);
+            Gdx.app.log("MyTag 2", "x " + (int)v.x + " y " + (int)v.y + " z " + (int)v.z);
 
             chunks.get(result).cubeInstance.get(result2).model.materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
 
             //boxInstance.get(result).materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
             //chunks.removeIndex(result);
+            //chunks.get(result).cubeInstance.get(result2).model = null;
         }
 
         return 1;
@@ -289,15 +335,140 @@ public class GameRenderScreen  implements Screen {
 
         if (found == false)
         {
-            chunks.add(new Chunk(new Vector3((x * Constants.chunkSize ),0,(z * Constants.chunkSize))));
+            b.add(new Vector3((x * Constants.chunkSize ),0,(z * Constants.chunkSize)));
+            //chunks.add(new Chunk(new Vector3((x * Constants.chunkSize ),0,(z * Constants.chunkSize))));
         }
     }
 
     public void createChunk(float x, float z, Vector3 direction) {
 
-        for (int i = 0; i < chunks.size; i ++ ) {
-            chunks.get(i).needed = false;
+        for (int i = 0; i < chunks2.size; i ++ ) {
+            chunks2.get(i).needed = false;
         }
+
+//        markAddChunk(x, z );
+//
+//        if (direction.z < 0)
+//        {
+//            Gdx.app.log("MyTag 2", "Fire A");
+//            if (direction.x < -0.5)
+//            {
+//                Gdx.app.log("MyTag 2", "Fire 1");
+//
+//                markAddChunk(x - 2, z);
+//                markAddChunk(x - 2, z - 1);
+//                markAddChunk(x - 2, z + 1);
+//                markAddChunk(x - 2, z - 2);
+//                markAddChunk(x - 2, z + 2);
+//
+//                markAddChunk(x - 1, z);
+//                markAddChunk(x - 1, z - 1);
+//                markAddChunk(x - 1, z + 1);
+//                markAddChunk(x - 1, z - 2);
+//                markAddChunk(x - 1, z + 2);
+//
+//                markAddChunk(x, z - 1);
+//                markAddChunk(x , z + 1);
+//            }
+//            else if (direction.x > 0.5)
+//            {
+//
+//                Gdx.app.log("MyTag 2", "Fire 2");
+//
+//                markAddChunk(x + 2, z);
+//                markAddChunk(x + 2, z - 1);
+//                markAddChunk(x + 2, z + 1);
+//                markAddChunk(x + 2, z - 2);
+//                markAddChunk(x + 2, z + 2);
+//
+//                markAddChunk(x + 1, z);
+//                markAddChunk(x + 1, z - 1);
+//                markAddChunk(x + 1, z + 1);
+//                markAddChunk(x + 1, z - 2);
+//                markAddChunk(x + 1, z + 2);
+//
+//                markAddChunk(x, z - 1);
+//                markAddChunk(x , z + 1);
+//            }
+//            else
+//            {
+//                Gdx.app.log("MyTag 2", "Fire 3");
+//
+//                markAddChunk(x, z - 2);
+//                markAddChunk(x - 1, z - 2);
+//                markAddChunk(x + 1, z - 2);
+//                markAddChunk(x - 2, z - 2);
+//                markAddChunk(x + 2, z - 2);
+//
+//                markAddChunk(x, z - 1);
+//                markAddChunk(x - 1, z - 1);
+//                markAddChunk(x + 1, z - 1);
+//                markAddChunk(x - 2, z - 1);
+//                markAddChunk(x + 2, z - 1);
+//
+//                markAddChunk(x - 1, z );
+//                markAddChunk(x + 1, z );
+//            }
+//        }
+//        else
+//        {
+//            Gdx.app.log("MyTag 2", "Fire B");
+//
+//            if (direction.x < -0.5)
+//            {
+//                Gdx.app.log("MyTag 2", "Fire 2");
+//                markAddChunk(x - 2, z);
+//                markAddChunk(x - 2, z - 1);
+//                markAddChunk(x - 2, z + 1);
+//                markAddChunk(x - 2, z - 2);
+//                markAddChunk(x - 2, z + 2);
+//
+//                markAddChunk(x - 1, z);
+//                markAddChunk(x - 1, z - 1);
+//                markAddChunk(x - 1, z + 1);
+//                markAddChunk(x - 1, z - 2);
+//                markAddChunk(x - 1, z + 2);
+//
+//                markAddChunk(x, z - 1);
+//                markAddChunk(x , z + 1);
+//            }
+//            else if (direction.x > 0.5)
+//            {
+//                Gdx.app.log("MyTag 2", "Fire 3");
+//                markAddChunk(x + 2,z);
+//                markAddChunk(x + 2, z - 1);
+//                markAddChunk(x + 2, z + 1);
+//                markAddChunk(x + 2, z - 2);
+//                markAddChunk(x + 2, z + 2);
+//
+//                markAddChunk(x + 1,z);
+//                markAddChunk(x + 1, z - 1);
+//                markAddChunk(x + 1, z + 1);
+//                markAddChunk(x + 1, z - 2);
+//                markAddChunk(x + 1, z + 2);
+//
+//                markAddChunk(x, z - 1);
+//                markAddChunk(x , z + 1);
+//            }
+//            else
+//            {
+//                Gdx.app.log("MyTag 2", "Fire 4");
+//                markAddChunk(x,z + 2);
+//                markAddChunk(x - 1, z + 2);
+//                markAddChunk(x + 1, z + 2);
+//                markAddChunk(x - 2, z + 2);
+//                markAddChunk(x + 2, z + 2);
+//
+//                markAddChunk(x,z + 1);
+//                markAddChunk(x - 1, z + 1);
+//                markAddChunk(x + 1, z + 1);
+//                markAddChunk(x - 2, z + 1);
+//                markAddChunk(x + 2, z + 1);
+//
+//                markAddChunk(x - 1, z );
+//                markAddChunk(x + 1, z );
+//            }
+//        }
 
         int size = 5;
 
@@ -313,11 +484,21 @@ public class GameRenderScreen  implements Screen {
 
             if (chunks.get(i).needed == false)
             {
-                chunks.get(i).dispose();
+                //Constants.cubeCount -= chunks.get(i).cubeInstance.size ;
+                Chunk c = chunks.get(i);
+                c.dispose();
                 chunks.removeIndex(i);
+                Gdx.app.log("CHUNK", "disposed");
             }
-
         }
+
+        for (int i = 0; i < b.size; i ++ ) {
+            Gdx.app.log("CHUNK", "made");
+            chunks2.add(new MeshBuilder(b.get(i)));
+            //chunks.add(new Chunk(b.get(i)));
+        }
+
+        b.clear();
     }
 
 }

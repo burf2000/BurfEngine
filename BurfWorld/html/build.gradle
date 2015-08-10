@@ -15,6 +15,7 @@ gwt {
         strict = true;
         enableClosureCompiler = true;
         disableCastChecking = true;
+        optimize = 9;
     }
 }
 
