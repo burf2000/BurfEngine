@@ -2,11 +2,8 @@ package com.burfdevelopment.burfworld.Entity;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.*;
-import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
@@ -21,62 +18,71 @@ import java.util.Random;
 public class MeshBuilder {
 
     public Vector3 position;
-    private static ModelBuilder modelBuilder;
-    private static Model cube;
     public boolean deleting = false;
     private static Random rand = new Random();
-    private ShaderProgram shaderProgram;
-    private Texture texture;
     private Mesh mesh;
     public boolean needed = true;
+    public boolean finished = false;
+    public Array<Mesh> meshes = new Array<Mesh>();
+    public Array<Matrix4> transformations= new Array<Matrix4>();
 
-    Array<Mesh> meshes = new Array<Mesh>();
-    Array<Matrix4> transformations= new Array<Matrix4>();
+    private boolean dirty = false;
+    private Array<Vector3> dirtyPositions = new Array<Vector3>();
 
-    static {
-        modelBuilder = new ModelBuilder();
-        cube = modelBuilder.createBox(1f, 1f, 1f,
-                new Material(ColorAttribute.createDiffuse(Color.BLUE)),
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
+    public void setDirtyPosition(Vector3 dirtyPosition) {
+        this.dirtyPositions.add(dirtyPosition);
+        dirty = true;
     }
 
-    public MeshBuilder(Vector3 position)
+    public MeshBuilder(Vector3 position, Model cube)
     {
-        String vertexShader = Gdx.files.internal("vert.glsl").readString();
-        String  fragmentShader = Gdx.files.internal("frag.glsl").readString();
-        shaderProgram = new ShaderProgram(vertexShader,fragmentShader);
-
-        texture = new Texture("badlogic.jpg");
-        texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
-
-        ModelInstance model;
-
         this.position = position;
 
-        float r = rand.nextFloat();
-        float g = rand.nextFloat();
-        float b = rand.nextFloat();
-        Color color = new Color(r, g, b, 1);
+//        float r = rand.nextFloat();
+//        float g = rand.nextFloat();
+//        float b = rand.nextFloat();
+//        Color color = new Color(r, g, b, 1);
 
-        for (int x = 0; x < Constants.chunkSize; x ++ ) {
+        createMeshes(cube);
+    }
 
-            for (int y = 0; y < Constants.chunkSize; y ++ ) {
+    public void createMeshes(Model cube)
+    {
+        ModelInstance model;
+        Vector3 pos = new Vector3();
 
-                for (int z = 0; z < Constants.chunkSize; z ++ ) {
+        for (float x = 0; x < Constants.chunkSize; x ++ ) {
+
+            for (float y = 0; y < Constants.chunkSize; y ++ ) {
+
+                for (float z = 0; z < Constants.chunkSize; z ++ ) {
+
+                    pos.x = position.x + x - (Constants.chunkSize / 2);
+                    pos.y = position.y - y;
+                    pos.z = position.z + z - (Constants.chunkSize / 2);
+
+//                    if (dirtyPositions.size > 0)
+//                    {
+//                        Gdx.app.log("MyTag 2", pos.toString() + " " + dirtyPositions.toString() );
+//                    }
 
                     if (x > 0 && x < (Constants.chunkSize - 1) && y > 0 && y < (Constants.chunkSize - 1) && z > 0 && z < (Constants.chunkSize - 1) )
                     {
 
                     }
+                    else if (dirtyPositions.contains(pos, false))
+                    {
+                        Gdx.app.log("MyTag 2", "BOMB");
+                    }
                     else
                     {
-                        cube.materials.get(0).set(ColorAttribute.createDiffuse(color));
+                        //cube.materials.get(0).set(ColorAttribute.createDiffuse(color));
                         //new VertexAttribute(Usage.ColorPacked, 4, "a_color"));
-
-
-                        model = new ModelInstance(cube, position.x + x - (Constants.chunkSize / 2), position.y - y, position.z + z - (Constants.chunkSize / 2));
+                        //model.materials.get(0).set(ColorAttribute.createDiffuse(color));
+                        //model.model.materials.get(0).set(ColorAttribute.createDiffuse(color));
 
                         //model.transform.setToTranslation(position.x + x - (Constants.chunkSize / 2), position.y - y, position.z + z - (Constants.chunkSize / 2));
+                        model = new ModelInstance(cube, position.x + x - (Constants.chunkSize / 2), position.y - y, position.z + z - (Constants.chunkSize / 2));
                         meshes.addAll(model.model.meshes);
                         transformations.add(model.transform);
                     }
@@ -85,17 +91,33 @@ public class MeshBuilder {
         }
 
         mesh = MeshBuilder.mergeMeshes(meshes, transformations);
+
+        finished = true;
     }
 
-    public void render( Camera camera)
+    public void checkDirty(Model cube)
     {
-        texture.bind();
-        shaderProgram.begin();
-        shaderProgram.setUniformMatrix("u_projTrans", camera.combined);
-        shaderProgram.setAttributef("a_color",1,1,1,1);
-        shaderProgram.setUniformi("u_texture", 0);
+        if (dirty == true)
+        {
+            finished = false;
+            mesh.dispose();
+            meshes.clear();
+            transformations.clear();
 
-        mesh.render(shaderProgram, GL20.GL_TRIANGLES);
+            createMeshes(cube);
+
+            dirty = false;
+            finished = true;
+        }
+    }
+
+    public void render( Camera camera, ShaderProgram shaderProgram, Model cube )
+    {
+        checkDirty(cube);
+
+        if (finished == true  && deleting == false) {
+            mesh.render(shaderProgram, GL20.GL_TRIANGLES);
+        }
 
         //mesh2.render(shaderProgram, GL20.GL_TRIANGLES);
 //        for (int x = 0; x < meshes.size; x ++ ) {
@@ -103,15 +125,13 @@ public class MeshBuilder {
 //            m.transform(transformations.get(x));
 //            m.render(shaderProgram, GL20.GL_TRIANGLES);
 //        }
-
-        shaderProgram.end();
     }
 
     public void dispose()
     {
-        mesh.dispose();
-        shaderProgram.dispose();
-        texture.dispose();
+        // todo causes a crash
+        deleting = true;
+        //mesh.dispose();
     }
 
 

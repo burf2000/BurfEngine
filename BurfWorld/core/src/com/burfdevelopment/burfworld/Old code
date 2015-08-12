@@ -190,3 +190,65 @@
 //                markAddChunk(x + 1, z );
 //            }
 //        }
+
+//    public int getObject (int screenX, int screenY) {
+//
+//        //createChunk((int) camera.position.x / 16, (int) camera.position.z / 16, camera.direction);
+//
+//        int result = -1;
+//        int result2 = -1;
+//        float distance = -1;
+//        BoundingBox bounds = new BoundingBox();
+//
+//        Ray ray = camera.getPickRay(screenX, screenY);
+//        Vector3 pos = new Vector3(camera.position);
+//        Vector3 v = new Vector3();
+//
+//        for (int i = 0; i < chunks.size; i++) {
+//
+//            Chunk chunkInstance = chunks.get(i);
+//
+//            for (int a = 0; a < chunkInstance.cubeInstance.size; a++) {
+//
+//                ChunkObject cubeInstance = chunkInstance.cubeInstance.get(a);
+//
+//                if (cubeInstance.model != null)
+//                {
+//                    cubeInstance.model.transform.getTranslation(pos);
+//                    cubeInstance.model.calculateBoundingBox(bounds);
+//                    bounds.set(bounds.min.add(cubeInstance.getCenter().x, cubeInstance.getCenter().y, cubeInstance.getCenter().z), bounds.max.add(cubeInstance.getCenter().x, cubeInstance.getCenter().y, cubeInstance.getCenter().z));
+//
+//                    //Gdx.app.log("MyTag 2", "BLLA" + bounds.toString());
+//
+//                    float dist2 = ray.origin.dst2(pos);
+//                    //TODO move out
+//                    if (distance >= 0f && dist2 > distance || dist2 > 80) continue;
+//
+//                    Gdx.app.log("Distance","Distance " + dist2);
+//
+//                    if (Intersector.intersectRayBounds(ray, bounds, v))
+//                    {
+//                        Gdx.app.log("MyTag 2","BLLA");
+//                        result = i;
+//                        result2 = a;
+//                        distance = dist2;
+//                    }
+//                }
+//            }
+//
+//        }
+//
+//        if (result > -1)
+//        {
+//            Gdx.app.log("MyTag 2", "x " + v.x + " y " + v.y + " z " + v.z);
+//            Gdx.app.log("MyTag 2", "x " + (int)v.x + " y " + (int)v.y + " z " + (int)v.z);
+//
+//            //chunks.get(result).cubeInstance.get(result2).model.materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
+//
+//            //boxInstance.get(result).materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
+//            //chunks.removeIndex(result);
+//            //chunks.get(result).cubeInstance.get(result2).model = null;
+//        }
+//
+//        return 1;
+//    };

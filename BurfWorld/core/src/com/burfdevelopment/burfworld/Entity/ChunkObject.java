@@ -48,7 +48,6 @@ public class ChunkObject  implements Pool.Poolable {
             this.model = new ModelInstance(model, center.x, center.y, center.z);
             this.model.materials.get(0).set(ColorAttribute.createDiffuse(color));
         }
-
     }
 
     @Override
