@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -20,11 +21,9 @@ import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
-import com.badlogic.gdx.utils.Pool;
 import com.badlogic.gdx.utils.async.AsyncExecutor;
 import com.badlogic.gdx.utils.async.AsyncTask;
 import com.burfdevelopment.burfworld.Constants;
-import com.burfdevelopment.burfworld.Entity.ChunkObject;
 import com.burfdevelopment.burfworld.Entity.MeshBuilder;
 import com.burfdevelopment.burfworld.Skybox;
 import com.burfdevelopment.burfworld.Utils.ControlsController;
@@ -35,7 +34,6 @@ import com.burfdevelopment.burfworld.Utils.ControlsController;
 public class GameRenderScreen  implements Screen {
 
     private Stage stage = new Stage();
-    //private SpriteBatch batch;
     private BitmapFont font;
     private PerspectiveCamera camera;
     private ControlsController fps;
@@ -50,39 +48,16 @@ public class GameRenderScreen  implements Screen {
     private static AsyncExecutor executor = new AsyncExecutor(1);
     private static AsyncTask task;
 
-    private ModelBatch modelBatch;
-    //private Array<GameObject> boxInstance;
-    //private Array<Chunk> chunks;
+    private ModelBatch modelBatch = new ModelBatch();;
     private Array<MeshBuilder> chunks2;
-
     private Vector3 oldPosition = new Vector3();
-    private Array<Vector3> chunksToBuild = new Array<Vector3>();
+    //private Array<Vector3> chunksToBuild = new Array<Vector3>();
 
     private ShaderProgram shaderProgram;
     private Texture texture;
 
     private ModelBuilder modelBuilder;
     private Model cube;
-
-    public static Pool<ChunkObject> chunkPool = new Pool<ChunkObject>() {
-
-        @Override
-        protected ChunkObject newObject() {
-            //Gdx.app.log("CHUNK", "New Model");
-            return new ChunkObject();
-        }
-
-    };
-
-    public static Pool<ChunkObject> chunkPoolNoModel = new Pool<ChunkObject>() {
-
-        @Override
-        protected ChunkObject newObject() {
-            //Gdx.app.log("CHUNK", "New no modelw");
-            return new ChunkObject();
-        }
-
-    };
 
     @Override
     public void show() {
@@ -103,23 +78,8 @@ public class GameRenderScreen  implements Screen {
         camera.near = 0.5f;
         camera.far = 1000;
         fps = new ControlsController(camera , this, stage);
-        //Gdx.input.setInputProcessor(fps)
 
-        //TODO move
-        modelBatch = new ModelBatch();
-//        boxInstance = new Array();
-//        chunks = new Array();
-        chunks2 = new Array();
-
-        createChunk(0, 0, camera.direction);
-        task= new AsyncTask() {
-            @Override
-            public Object call() throws Exception {
-                createChunk((int) camera.position.x / 16, (int) camera.position.z / 16, camera.direction);
-
-                return null;
-            }
-        };
+        setupChunks();
 
         //Light..
         lights = new Environment();
@@ -128,6 +88,20 @@ public class GameRenderScreen  implements Screen {
 
         compileShaderTexture();
     }
+
+    public void setupChunks()
+    {
+        chunks2 = new Array();
+        createChunk(0, 0, camera.direction);
+        task= new AsyncTask() {
+            @Override
+            public Object call() throws Exception {
+                createChunk((int) camera.position.x / 16, (int) camera.position.z / 16, camera.direction);
+                return null;
+            }
+        };
+    }
+
 
     public void update(){
 
@@ -191,8 +165,9 @@ public class GameRenderScreen  implements Screen {
         {
             //Gdx.app.log("MyTag 2", "count" + chunks.size);
             accum = 0.0f;
-            //executor.submit(task);
-            createChunk((int) camera.position.x / 16, (int) camera.position.z / 16, camera.direction);
+            //TODO fix
+            executor.submit(task);
+            //createChunk((int) camera.position.x / 16, (int) camera.position.z / 16, camera.direction);
 
         }
 
@@ -204,14 +179,8 @@ public class GameRenderScreen  implements Screen {
         Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
         modelBatch.begin(camera);
-
         Skybox.update(camera.position);
         modelBatch.render(Skybox.modelInstance);
-
-//        for (int i = 0; i < chunks.size; i ++ ) {
-//                chunks.get(i).render(modelBatch, camera);
-//        }
-
         modelBatch.end();
 
         Gdx.gl20.glEnable(GL20.GL_TEXTURE_2D);
@@ -228,7 +197,7 @@ public class GameRenderScreen  implements Screen {
         shaderProgram.setUniformi("u_texture", 0);
 
         for (int i = 0; i < chunks2.size; i ++ ) {
-            chunks2.get(i).render(camera, shaderProgram, cube);
+            chunks2.get(i).render(shaderProgram);
         }
 
         shaderProgram.end();
@@ -245,13 +214,11 @@ public class GameRenderScreen  implements Screen {
 
         stage.getBatch().begin();
         font.draw(stage.getBatch(), "FPS: " + Gdx.graphics.getFramesPerSecond() + " Cube Count " + Constants.cubeCount + " rend Count " + Constants.renderCount, 10, Gdx.graphics.getHeight() - 10);
-        font.draw(stage.getBatch(), "Mem: " + Gdx.app.getJavaHeap() / 1000000f + " " + Gdx.app.getNativeHeap() / 1000000f + " " + GameRenderScreen.chunkPool.getFree() + " " + GameRenderScreen.chunkPoolNoModel.getFree(), 10, Gdx.graphics.getHeight() - 30);
+        font.draw(stage.getBatch(), "Mem: " + Gdx.app.getJavaHeap() / 1000000f + " " + Gdx.app.getNativeHeap() / 1000000f , 10, Gdx.graphics.getHeight() - 30);
         stage.getBatch().end();
     }
 
     public int getObject (int screenX, int screenY) {
-
-        //createChunk((int) camera.position.x / 16, (int) camera.position.z / 16, camera.direction);
 
         int chunkIndex = -1;
         int meshIndex = -1;
@@ -267,46 +234,46 @@ public class GameRenderScreen  implements Screen {
 
             MeshBuilder chunkInstance = chunks2.get(i);
 
-            for (int a = 0; a < chunkInstance.transformations.size; a++) {
+            if (Intersector.intersectRayBoundsFast(ray, chunkInstance.position, new Vector3(16,16,16)))
+            {
+                Gdx.app.log("RAN", "SHOULD BE once");
 
-                transfor.set(chunkInstance.transformations.get(a).getValues());
-                Mesh m = chunkInstance.meshes.get(a).copy(false);
-                transfor.getTranslation(pos);
-                m.transform(transfor);
-                m.calculateBoundingBox(bounds);
+                for (int a = 0; a < chunkInstance.transformations.size; a++) {
 
-                //Gdx.app.log("MyTag 2", "Mesh" + transfor.toString());
+                    //todo probably can improve as pissing memorys
+                    transfor.set(chunkInstance.transformations.get(a).getValues());
+                    Mesh m = chunkInstance.meshes.get(a).copy(false);
+                    transfor.getTranslation(pos);
+                    m.transform(transfor);
+                    m.calculateBoundingBox(bounds);
 
-                //bounds.set(bounds.min.add(transfor.M03, transfor.M13, transfor.M23), bounds.max.add(transfor.M03, transfor.M13, transfor.M23));
-                //bounds.mul(transfor);
+                    //Gdx.app.log("MyTag 2", "Mesh" + transfor.toString());
 
-                float dist2 = ray.origin.dst2(pos);
-                //TODO move out
-                if (distance >= 0f && dist2 > distance || dist2 > 80) continue;
+                    //bounds.set(bounds.min.add(transfor.M03, transfor.M13, transfor.M23), bounds.max.add(transfor.M03, transfor.M13, transfor.M23));
+                    //bounds.mul(transfor);
 
-                if (Intersector.intersectRayBounds(ray, bounds, v))
-                {
-                    //Gdx.app.log("MyTag 2","BLLA");
-                    chunkIndex = i;
-                    meshIndex = a;
-                    distance = dist2;
+                    float dist2 = ray.origin.dst2(pos);
+                    if (distance >= 0f && dist2 > distance || dist2 > Constants.rayDistance) continue;
+
+                    if (Intersector.intersectRayBounds(ray, bounds, v))
+                    {
+                        //Gdx.app.log("MyTag 2","BLLA");
+                        chunkIndex = i;
+                        meshIndex = a;
+                        distance = dist2;
+                    }
+
+                    m.dispose();
+//            }
                 }
-
-                m.dispose();
             }
         }
 
         if (chunkIndex > -1)
         {
             Gdx.app.log("MyTag 2", "x " + v.x + " y " + v.y + " z " + v.z);
-            Gdx.app.log("MyTag 2", "x " + (int)v.x + " y " + (int)v.y + " z " + (int)v.z);
-            chunks2.get(chunkIndex).setDirtyPosition(new Vector3((int)v.x , (int)v.y,(int)v.z));
-
-            //chunks2.get(result).meshes.get(result2) .materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
-
-            //boxInstance.get(result).materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
-            //chunks.removeIndex(result);
-            //chunks.get(result).cubeInstance.get(result2).model = null;
+            Gdx.app.log("MyTag 2", "x " + MathUtils.round(v.x) + " y " + MathUtils.round(v.y) + " z " + MathUtils.round(v.z));
+            chunks2.get(chunkIndex).setDirtyPosition(meshIndex);
         }
 
         return 1;
@@ -328,43 +295,14 @@ public class GameRenderScreen  implements Screen {
 
         if (found == false)
         {
-            chunksToBuild.add(new Vector3((x * Constants.chunkSize), 0, (z * Constants.chunkSize)));
+            chunks2.add(new MeshBuilder(new Vector3((x * Constants.chunkSize), 0, (z * Constants.chunkSize)), cube));
+            //chunksToBuild.add(new Vector3((x * Constants.chunkSize), 0, (z * Constants.chunkSize)));
             //chunks.add(new Chunk(new Vector3((x * Constants.chunkSize ),0,(z * Constants.chunkSize))));
         }
     }
 
     public void compileShaderTexture()
     {
-//        String vertexShader = "attribute vec4 a_position;\n" +
-//                "attribute vec4 a_color;\n" +
-//                "attribute vec2 a_texCoord0;\n" +
-//                "\n" +
-//                "uniform mat4 u_projTrans;\n" +
-//                "\n" +
-//                "varying vec4 v_color;\n" +
-//                "varying vec2 v_texCoords;\n" +
-//                "\n" +
-//                "void main() {\n" +
-//                "    v_color = a_color;\n" +
-//                "    v_texCoords = a_texCoord0;\n" +
-//                "    gl_Position = u_projTrans * a_position;\n" +
-//                "}"; //Gdx.files.internal("vert.glsl").readString();
-//        String  fragmentShader = "#ifdef GL_ES\n" +
-//                "#define LOWP lowp\n" +
-//                "    precision mediump float;\n" +
-//                "#else\n" +
-//                "    #define LOWP\n" +
-//                "#endif\n" +
-//                "\n" +
-//                "varying LOWP vec4 v_color;\n" +
-//                "varying vec2 v_texCoords;\n" +
-//                "\n" +
-//                "uniform sampler2D u_texture;\n" +
-//                "\n" +
-//                "void main()\n" +
-//                "{\n" +
-//                "    gl_FragColor =  texture2D(u_texture, v_texCoords) * v_color;\n" +
-//                "}"; // Gdx.files.internal("frag.glsl").readString();
 
         String vertexShader = Gdx.files.internal("vert.glsl").readString();
         String  fragmentShader = Gdx.files.internal("frag.glsl").readString();
@@ -384,6 +322,7 @@ public class GameRenderScreen  implements Screen {
 
         for (int i = 0; i < chunks2.size; i ++ ) {
             chunks2.get(i).needed = false;
+            chunks2.get(i).checkDirty();
         }
 
 //        markAddChunk(x, z );
@@ -510,7 +449,7 @@ public class GameRenderScreen  implements Screen {
 //            }
 //        }
 
-        int size = 3;
+        int size = 5;
 
         for (int xx = 0 ; xx < size ; xx++)
         {
@@ -528,28 +467,6 @@ public class GameRenderScreen  implements Screen {
                 m.dispose();
             }
         }
-
-        //Gdx.app.log("CHUNK", "b " + chunksToBuild.size);
-
-//        for (int i = 0; i < chunks2.size; i ++ ) {
-//
-//            if (chunks2.get(i).needed == false)
-//            {
-//                //Constants.cubeCount -= chunks.get(i).cubeInstance.size ;
-//                Chunk c = chunks.get(i);
-//                c.dispose();
-//                chunks.removeIndex(i);
-//                Gdx.app.log("CHUNK", "disposed");
-//            }
-//        }
-
-        for (int i = 0; i < chunksToBuild.size; i ++ ) {
-            //Gdx.app.log("CHUNK", "made");
-            chunks2.add(new MeshBuilder(chunksToBuild.get(i), cube));
-            //chunks.add(new Chunk(b.get(i)));
-        }
-
-        chunksToBuild.clear();
     }
 
     @Override

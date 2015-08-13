@@ -1,7 +1,10 @@
 package com.burfdevelopment.burfworld.Entity;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Mesh;
+import com.badlogic.gdx.graphics.VertexAttribute;
+import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
@@ -15,6 +18,8 @@ import java.util.Random;
 /**
  * Created by burfies1 on 10/08/15.
  */
+
+//todo save chuncks
 public class MeshBuilder {
 
     public Vector3 position;
@@ -27,10 +32,10 @@ public class MeshBuilder {
     public Array<Matrix4> transformations= new Array<Matrix4>();
 
     private boolean dirty = false;
-    private Array<Vector3> dirtyPositions = new Array<Vector3>();
 
-    public void setDirtyPosition(Vector3 dirtyPosition) {
-        this.dirtyPositions.add(dirtyPosition);
+    public void setDirtyPosition(int index) {
+        meshes.removeIndex(index);
+        transformations.removeIndex(index);
         dirty = true;
     }
 
@@ -70,10 +75,10 @@ public class MeshBuilder {
                     {
 
                     }
-                    else if (dirtyPositions.contains(pos, false))
-                    {
-                        Gdx.app.log("MyTag 2", "BOMB");
-                    }
+//                    else if (dirtyPositions.contains(pos, false))
+//                    {
+//                        Gdx.app.log("MyTag 2", "BOMB");
+//                    }
                     else
                     {
                         //cube.materials.get(0).set(ColorAttribute.createDiffuse(color));
@@ -90,41 +95,42 @@ public class MeshBuilder {
             }
         }
 
-        mesh = MeshBuilder.mergeMeshes(meshes, transformations);
+        Gdx.app.postRunnable(new Runnable() {
+            @Override
+            public void run() {
 
-        finished = true;
+                mesh = MeshBuilder.mergeMeshes(meshes, transformations);
+                finished = true;
+            }
+        });
     }
 
-    public void checkDirty(Model cube)
+    public void checkDirty()
     {
-        if (dirty == true)
-        {
-            finished = false;
-            mesh.dispose();
-            meshes.clear();
-            transformations.clear();
+        Gdx.app.postRunnable(new Runnable() {
+            @Override
+            public void run() {
 
-            createMeshes(cube);
+                if (dirty == true)
+                {
+                    finished = false;
+                    mesh.dispose();
+                    mesh = MeshBuilder.mergeMeshes(meshes, transformations);
+                    dirty = false;
+                    finished = true;
+                }
 
-            dirty = false;
-            finished = true;
-        }
+            }
+        });
     }
 
-    public void render( Camera camera, ShaderProgram shaderProgram, Model cube )
+    public void render(ShaderProgram shaderProgram)
     {
-        checkDirty(cube);
+        //checkDirty();
 
         if (finished == true  && deleting == false) {
             mesh.render(shaderProgram, GL20.GL_TRIANGLES);
         }
-
-        //mesh2.render(shaderProgram, GL20.GL_TRIANGLES);
-//        for (int x = 0; x < meshes.size; x ++ ) {
-//            Mesh m = meshes.get(x);
-//            m.transform(transformations.get(x));
-//            m.render(shaderProgram, GL20.GL_TRIANGLES);
-//        }
     }
 
     public void dispose()
