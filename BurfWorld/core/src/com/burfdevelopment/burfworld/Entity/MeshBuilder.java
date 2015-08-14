@@ -39,6 +39,12 @@ public class MeshBuilder {
         dirty = true;
     }
 
+    public MeshBuilder(Vector3 position)
+    {
+        this.position = position;
+    }
+
+
     public MeshBuilder(Vector3 position, Model cube)
     {
         this.position = position;
@@ -49,6 +55,18 @@ public class MeshBuilder {
 //        Color color = new Color(r, g, b, 1);
 
         createMeshes(cube);
+    }
+
+    public void addMesh(Vector3 pos, Model cube)
+    {
+        finished = false;
+
+        ModelInstance model = new ModelInstance(cube, pos.x, pos.y, pos.z);
+        meshes.addAll(model.model.meshes);
+        transformations.add(model.transform);
+
+        mesh = MeshBuilder.mergeMeshes(meshes, transformations);
+        finished = true;
     }
 
     public void createMeshes(Model cube)

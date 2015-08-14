@@ -252,3 +252,38 @@
 //
 //        return 1;
 //    };
+
+//                float cubeSize = 1.2f;
+//
+//                for (int i = 0; i < boxInstance.size; i ++ ) {
+//            modelBatch.render(boxInstance.get(i));
+//
+//
+//            if(accum >= TICK)
+//            {
+//                Date date = new Date(TimeUtils.millis());
+//                Gdx.app.log("FIRE", "Collison detect" + date);
+//
+//
+////                if (boxInstance.get(i).checkCollison == true)
+////                {
+////                    if (camera.position.x >  boxInstance.get(i).getCenter().x - cubeSize  &&
+////                            //camera.position.y >  boxInstance.get(i).getCenter().y - cubeSize  &&
+////                            camera.position.z >  boxInstance.get(i).getCenter().z - cubeSize  &&
+////                            camera.position.x <  boxInstance.get(i).getCenter().x + cubeSize &&
+////                            //camera.position.y >  boxInstance.get(i).getCenter().y + cubeSize  &&
+////                            camera.position.z <  boxInstance.get(i).getCenter().z + cubeSize
+////                            )
+////                    {
+////
+////
+////                        camera.position.set(oldPosition);
+////                        Gdx.app.log("MyTag 2", "BANG");
+////                    }
+////                }
+////
+//                accum = 0.0f;
+//            }
+//
+//
+//        }

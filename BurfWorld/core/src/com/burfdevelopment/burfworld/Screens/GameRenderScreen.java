@@ -92,11 +92,12 @@ public class GameRenderScreen  implements Screen {
     public void setupChunks()
     {
         chunks2 = new Array();
-        createChunk(0, 0, camera.direction);
+        createChunk(0, 0); //, camera.direction
         task= new AsyncTask() {
             @Override
             public Object call() throws Exception {
-                createChunk((int) camera.position.x / 16, (int) camera.position.z / 16, camera.direction);
+                createChunk((int) camera.position.x / Constants.chunkSize, (int) camera.position.z / Constants.chunkSize); //, camera.direction
+
                 return null;
             }
         };
@@ -107,52 +108,58 @@ public class GameRenderScreen  implements Screen {
 
         oldPosition.set(camera.position);
         fps.updateControls();
-        camera.position.set(camera.position.x, 1.5f, camera.position.z);
+
+        camera.position.set(camera.position.x, 1.0f, camera.position.z);
         fps.update();
+
+        checkCollison();
+        //camera.position.set(oldPosition);
         // causing issue
         //
-
     }
 
-    public void checkCollison()
-    {
-
-        //        float cubeSize = 1.2f;
-
-        //        for (int i = 0; i < boxInstance.size; i ++ ) {
-//            modelBatch.render(boxInstance.get(i));
-//
-//
-//            if(accum >= TICK)
-//            {
-//                Date date = new Date(TimeUtils.millis());
-//                Gdx.app.log("FIRE", "Collison detect" + date);
-//
-//
-////                if (boxInstance.get(i).checkCollison == true)
-////                {
-////                    if (camera.position.x >  boxInstance.get(i).getCenter().x - cubeSize  &&
-////                            //camera.position.y >  boxInstance.get(i).getCenter().y - cubeSize  &&
-////                            camera.position.z >  boxInstance.get(i).getCenter().z - cubeSize  &&
-////                            camera.position.x <  boxInstance.get(i).getCenter().x + cubeSize &&
-////                            //camera.position.y >  boxInstance.get(i).getCenter().y + cubeSize  &&
-////                            camera.position.z <  boxInstance.get(i).getCenter().z + cubeSize
-////                            )
-////                    {
-////
-////
-////                        camera.position.set(oldPosition);
-////                        Gdx.app.log("MyTag 2", "BANG");
-////                    }
-////                }
-////
-//                accum = 0.0f;
-//            }
+    public void checkCollison() {
 
 
-//        }
+        float cubeSize = 1.2f;
 
+        for (int i = 0; i < chunks2.size; i++) {
+
+            if (camera.position.x > chunks2.get(i).position.x - (Constants.chunkSize / 2) &&
+                    camera.position.x < chunks2.get(i).position.x + (Constants.chunkSize / 2) &&
+                    camera.position.y > chunks2.get(i).position.y - Constants.chunkSize &&
+                    camera.position.y < chunks2.get(i).position.y &&
+                    camera.position.z > chunks2.get(i).position.z - (Constants.chunkSize / 2) &&
+                    camera.position.z < chunks2.get(i).position.z + (Constants.chunkSize / 2)) {
+
+                for (int a = 0; a < chunks2.get(i).transformations.size; a++) {
+
+                    //Gdx.app.log("MyTag 2", "x " + chunks2.get(i).transformations.get(a).val[12] + " y " + chunks2.get(i).transformations.get(a).val[13] + " z " + chunks2.get(i).transformations.get(a).val[14]);
+                    //Gdx.app.log("MyTag 3", "x " + camera.position);
+
+
+                    if (camera.position.x >  chunks2.get(i).transformations.get(a).val[12] - cubeSize &&
+                            camera.position.y >  chunks2.get(i).transformations.get(a).val[13] - cubeSize  &&
+                            camera.position.z >  chunks2.get(i).transformations.get(a).val[14] - cubeSize  &&
+                            camera.position.x <  chunks2.get(i).transformations.get(a).val[12] + cubeSize &&
+                            camera.position.y <  chunks2.get(i).transformations.get(a).val[13] + cubeSize  &&
+                            camera.position.z <  chunks2.get(i).transformations.get(a).val[14] + cubeSize
+                            )
+                    {
+
+                        camera.position.set(oldPosition);
+                        //Gdx.app.log("MyTag 3", "x " + chunks2.get(i).transformations.get(a).val[12] + " y " + chunks2.get(i).transformations.get(a).val[13] + " z " + chunks2.get(i).transformations.get(a).val[14]);
+                    }
+
+                    //Gdx.app.log("FIRE", "X " + ((int) camera.position.x / Constants.chunkSize) + " y " + ((int) camera.position.y / Constants.chunkSize) + " z " + ((int) camera.position.z / Constants.chunkSize));
+                    //wGdx.app.log("FIRE", "X " + chunks2.get(i).position.x + " y " + chunks2.get(i).position.y + " z " + chunks2.get(i).position.z);
+                }
+            }
+
+        }
     }
+
+
 
     @Override
     public void render(float delta) {
@@ -161,14 +168,13 @@ public class GameRenderScreen  implements Screen {
         update(); // controls
 
         accum += Gdx.graphics.getDeltaTime();
+
         if(accum >= TICK) // fire off chunk builder
         {
-            //Gdx.app.log("MyTag 2", "count" + chunks.size);
             accum = 0.0f;
             //TODO fix
             executor.submit(task);
             //createChunk((int) camera.position.x / 16, (int) camera.position.z / 16, camera.direction);
-
         }
 
         Gdx.gl20.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -218,6 +224,46 @@ public class GameRenderScreen  implements Screen {
         stage.getBatch().end();
     }
 
+    public void removeObject(int chunkIndex, int meshIndex)
+    {
+        chunks2.get(chunkIndex).setDirtyPosition(meshIndex);
+    }
+
+    public void addObject(float x, float y, float z)
+    {
+        Gdx.app.log("PART 2", "x " + x + "y " + y + " z " + z );
+        Gdx.app.log("PART 2", "x " + (int) x / Constants.chunkSize + " y " + MathUtils.round(y) + " z " + (int) z / Constants.chunkSize );
+
+        boolean foundChunk = false;
+        for (int i = 0; i < chunks2.size; i++) {
+
+            if (x > chunks2.get(i).position.x - (Constants.chunkSize / 2) &&
+                    x < chunks2.get(i).position.x + (Constants.chunkSize / 2) &&
+                    y > chunks2.get(i).position.y - Constants.chunkSize &&
+                    y < chunks2.get(i).position.y  &&
+                    z > chunks2.get(i).position.z - (Constants.chunkSize / 2) &&
+                    z < chunks2.get(i).position.z + (Constants.chunkSize / 2) )
+            {
+                Gdx.app.log("PART 2", "Found chunk");
+                foundChunk = true;
+
+                chunks2.get(i).addMesh(new Vector3(MathUtils.round(x), MathUtils.round(y), MathUtils.round(z)), cube);
+            }
+        }
+
+        if (foundChunk == false)
+        {
+
+            MeshBuilder m = new MeshBuilder(new Vector3(((int) x / Constants.chunkSize), ((int)y / Constants.chunkSize) + Constants.chunkSize, ((int) z / Constants.chunkSize)));
+            m.addMesh(new Vector3(MathUtils.round(x),MathUtils.round(y),MathUtils.round(z)), cube);
+            // create empty chunk
+            chunks2.add(m);
+
+            // add item
+
+        }
+    }
+
     public int getObject (int screenX, int screenY) {
 
         int chunkIndex = -1;
@@ -234,7 +280,7 @@ public class GameRenderScreen  implements Screen {
 
             MeshBuilder chunkInstance = chunks2.get(i);
 
-            if (Intersector.intersectRayBoundsFast(ray, chunkInstance.position, new Vector3(16,16,16)))
+            if (Intersector.intersectRayBoundsFast(ray, chunkInstance.position, new Vector3(Constants.chunkSize,Constants.chunkSize,Constants.chunkSize)))
             {
                 Gdx.app.log("RAN", "SHOULD BE once");
 
@@ -248,7 +294,6 @@ public class GameRenderScreen  implements Screen {
                     m.calculateBoundingBox(bounds);
 
                     //Gdx.app.log("MyTag 2", "Mesh" + transfor.toString());
-
                     //bounds.set(bounds.min.add(transfor.M03, transfor.M13, transfor.M23), bounds.max.add(transfor.M03, transfor.M13, transfor.M23));
                     //bounds.mul(transfor);
 
@@ -264,7 +309,6 @@ public class GameRenderScreen  implements Screen {
                     }
 
                     m.dispose();
-//            }
                 }
             }
         }
@@ -273,7 +317,10 @@ public class GameRenderScreen  implements Screen {
         {
             Gdx.app.log("MyTag 2", "x " + v.x + " y " + v.y + " z " + v.z);
             Gdx.app.log("MyTag 2", "x " + MathUtils.round(v.x) + " y " + MathUtils.round(v.y) + " z " + MathUtils.round(v.z));
-            chunks2.get(chunkIndex).setDirtyPosition(meshIndex);
+
+            //removeObject(chunkIndex, meshIndex);
+
+            addObject(v.x,v.y,v.z);
         }
 
         return 1;
@@ -296,14 +343,11 @@ public class GameRenderScreen  implements Screen {
         if (found == false)
         {
             chunks2.add(new MeshBuilder(new Vector3((x * Constants.chunkSize), 0, (z * Constants.chunkSize)), cube));
-            //chunksToBuild.add(new Vector3((x * Constants.chunkSize), 0, (z * Constants.chunkSize)));
-            //chunks.add(new Chunk(new Vector3((x * Constants.chunkSize ),0,(z * Constants.chunkSize))));
         }
     }
 
     public void compileShaderTexture()
     {
-
         String vertexShader = Gdx.files.internal("vert.glsl").readString();
         String  fragmentShader = Gdx.files.internal("frag.glsl").readString();
         shaderProgram = new ShaderProgram(vertexShader,fragmentShader);
@@ -318,7 +362,7 @@ public class GameRenderScreen  implements Screen {
         texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
     }
 
-    public void createChunk(float x, float z, Vector3 direction) {
+    public void createChunk(float x, float z) { //, Vector3 direction
 
         for (int i = 0; i < chunks2.size; i ++ ) {
             chunks2.get(i).needed = false;
@@ -493,7 +537,6 @@ public class GameRenderScreen  implements Screen {
     @Override
     public void dispose() {
 
-        //boxInstance.clear();
         modelBuilder = null;
         cube.dispose();
         stage.dispose();
