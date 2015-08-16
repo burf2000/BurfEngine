@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
@@ -32,7 +33,9 @@ public class MeshBuilder {
 
     private boolean dirty = false;
 
-    public void setDirtyPosition(int index, Model cube) {
+    public void setDirtyPosition(int index, Array<Model> cubes) {
+
+        int r = MathUtils.random(cubes.size -1);
 
         Vector3 v = new Vector3(transformations.get(index).val[12] - position.x, transformations.get(index).val[13]- position.y, transformations.get(index).val[14]- position.z);
 
@@ -45,7 +48,7 @@ public class MeshBuilder {
 
         if( chunk[(int)(v.x + (Constants.chunkSize / 2))][(int)(-v.y) + 1][(int)(v.z + (Constants.chunkSize / 2))] ==  Constants.BrickState.HIDDEN.value) {
             ModelInstance model;
-            model = new ModelInstance(cube, v.x + position.x, v.y - 1 + position.y, v.z + position.z);
+            model = new ModelInstance(cubes.get(r), v.x + position.x, v.y - 1 + position.y, v.z + position.z);
             meshes.addAll(model.model.meshes);
             transformations.add(model.transform);
             chunk[(int) (v.x + (Constants.chunkSize / 2))][(int) (-v.y) + 1][(int) (v.z + (Constants.chunkSize / 2))] =  Constants.BrickState.SHOW.value;
@@ -60,17 +63,19 @@ public class MeshBuilder {
     }
 
 
-    public MeshBuilder(Vector3 position, Model cube)
+    public MeshBuilder(Vector3 position, Array<Model> cubes)
     {
         this.position = position;
-        createMeshes(cube);
+        createMeshes(cubes);
     }
 
-    public void addMesh(Vector3 pos, Model cube)
+    public void addMesh(Vector3 pos, Array<Model> cubes)
     {
+        int r = MathUtils.random(cubes.size -1);
+
         finished = false;
 
-        ModelInstance model = new ModelInstance(cube, pos.x, pos.y, pos.z);
+        ModelInstance model = new ModelInstance(cubes.get(r), pos.x, pos.y, pos.z);
         meshes.addAll(model.model.meshes);
         transformations.add(model.transform);
 
@@ -78,7 +83,7 @@ public class MeshBuilder {
         finished = true;
     }
 
-    public void createMeshes(Model cube)
+    public void createMeshes(Array<Model> cubes)
     {
         ModelInstance model;
 
@@ -94,6 +99,8 @@ public class MeshBuilder {
                     }
                     else
                     {
+                        int r = MathUtils.random(cubes.size -1);
+
                         chunk[x][y][z] = Constants.BrickState.SHOW.value;
 
                         //cube.materials.get(0).set(ColorAttribute.createDiffuse(color));
@@ -102,7 +109,7 @@ public class MeshBuilder {
                         //model.model.materials.get(0).set(ColorAttribute.createDiffuse(color));
 
                         //model.transform.setToTranslation(position.x + x - (Constants.chunkSize / 2), position.y - y, position.z + z - (Constants.chunkSize / 2));
-                        model = new ModelInstance(cube, position.x + x - (Constants.chunkSize / 2), position.y - y, position.z + z - (Constants.chunkSize / 2));
+                        model = new ModelInstance(cubes.get(r), position.x + x - (Constants.chunkSize / 2), position.y - y, position.z + z - (Constants.chunkSize / 2));
 
                         meshes.addAll(model.model.meshes);
                         transformations.add(model.transform);
@@ -152,7 +159,7 @@ public class MeshBuilder {
         deleting = true;
         //mesh.dispose();
     }
-    
+
     public static Mesh mergeMeshes(Array<Mesh> meshes, Array<Matrix4> transformations)
     {
 

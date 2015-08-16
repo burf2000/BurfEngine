@@ -53,39 +53,23 @@ public class GameRenderScreen  implements Screen {
     private ModelBatch modelBatch = new ModelBatch();;
     private Array<MeshBuilder> chunks2;
     private Vector3 oldPosition = new Vector3();
-    //private Array<Vector3> chunksToBuild = new Array<Vector3>();
 
     private ShaderProgram shaderProgram;
     private Texture texture;
     private TextureRegion[][]  regions; // #2
 
     private ModelBuilder modelBuilder;
-    private Model cube;
+
+    private Array<Model> cubes;
 
     @Override
     public void show() {
 
         //TODO create one asset manager
-        //batch = new SpriteBatch();
         font = new BitmapFont();
         font.setColor(Color.WHITE);
 
         compileShaderTexture();
-
-        //regions[1][5].getTexture().bind();
-
-        modelBuilder = new ModelBuilder();
-//        cube = modelBuilder.createBox(Constants.cubeSize, Constants.cubeSize, Constants.cubeSize,
-//                new Material(ColorAttribute.createDiffuse(Color.BLUE)),
-//                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
-
-        modelBuilder.begin();
-        MeshPartBuilder mpb = modelBuilder.part("box", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates, new Material(ColorAttribute.createDiffuse(Color.BLUE)));
-        mpb.setUVRange(regions[1][5]);
-        mpb.box(1, 1, 1);
-        cube = modelBuilder.end();
-
-
         Skybox.createSkyBox();
 
         //camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -241,7 +225,7 @@ public class GameRenderScreen  implements Screen {
 
     public void removeObject(int chunkIndex, int meshIndex)
     {
-        chunks2.get(chunkIndex).setDirtyPosition(meshIndex, cube);
+        chunks2.get(chunkIndex).setDirtyPosition(meshIndex, cubes);
     }
 
     public void addObject(float x, float y, float z)
@@ -262,7 +246,7 @@ public class GameRenderScreen  implements Screen {
                 Gdx.app.log("PART 2", "Found chunk");
                 foundChunk = true;
 
-                chunks2.get(i).addMesh(new Vector3(MathUtils.round(x), MathUtils.round(y), MathUtils.round(z)), cube);
+                chunks2.get(i).addMesh(new Vector3(MathUtils.round(x), MathUtils.round(y), MathUtils.round(z)), cubes);
             }
         }
 
@@ -270,7 +254,7 @@ public class GameRenderScreen  implements Screen {
         {
 
             MeshBuilder m = new MeshBuilder(new Vector3(((int) x / Constants.chunkSize), ((int)y / Constants.chunkSize) + Constants.chunkSize, ((int) z / Constants.chunkSize)));
-            m.addMesh(new Vector3(MathUtils.round(x),MathUtils.round(y),MathUtils.round(z)), cube);
+            m.addMesh(new Vector3(MathUtils.round(x), MathUtils.round(y), MathUtils.round(z)), cubes);
             // create empty chunk
             chunks2.add(m);
 
@@ -357,7 +341,7 @@ public class GameRenderScreen  implements Screen {
 
         if (found == false)
         {
-            chunks2.add(new MeshBuilder(new Vector3((x * Constants.chunkSize), 0, (z * Constants.chunkSize)), cube));
+            chunks2.add(new MeshBuilder(new Vector3((x * Constants.chunkSize), 0, (z * Constants.chunkSize)), cubes));
         }
     }
 
@@ -377,6 +361,28 @@ public class GameRenderScreen  implements Screen {
         regions = TextureRegion.split(texture, 64, 64);
 
         //texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+
+        Model cube;
+
+        modelBuilder = new ModelBuilder();
+//        cube = modelBuilder.createBox(Constants.cubeSize, Constants.cubeSize, Constants.cubeSize,
+//                new Material(ColorAttribute.createDiffuse(Color.BLUE)),
+//                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
+
+
+        //todo nasty need to think about
+        cubes = new Array();
+        for (int x = 0; x < 8; x ++ ) {
+            for (int y = 0; y < 8; y ++ ) {
+
+                modelBuilder.begin();
+                MeshPartBuilder mpb = modelBuilder.part("box", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates, new Material(ColorAttribute.createDiffuse(Color.BLUE)));
+                mpb.setUVRange(regions[x][y]);
+                mpb.box(1, 1, 1);
+                cube = modelBuilder.end();
+                cubes.add(cube);
+            }
+        }
     }
 
     public void createChunk(float x, float z) { //, Vector3 direction
@@ -561,7 +567,7 @@ public class GameRenderScreen  implements Screen {
     public void dispose() {
 
         modelBuilder = null;
-        cube.dispose();
+        cubes.clear();
         stage.dispose();
         font.dispose();
         modelBatch.dispose();
