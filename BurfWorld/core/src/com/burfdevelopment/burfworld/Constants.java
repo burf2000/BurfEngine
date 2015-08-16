@@ -10,4 +10,17 @@ public class Constants {
     public static int cubeCount;
 
     public static int rayDistance = 80;
+
+    public static float cubeCollisonSize = 0.6f;
+    public static float cubeSize = 1.0f;
+
+    public enum BrickState {
+        DELETED(-1) , HIDDEN(0) , SHOW(1);
+
+        public int value;
+
+        private BrickState(int value) {
+            this.value = value;
+        }
+    }
 }

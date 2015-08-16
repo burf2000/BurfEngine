@@ -21,6 +21,8 @@ public class GameActivity extends Game implements ApplicationListener {
 		Parse p = new Parse();
 		p.add_net_score();
 
+		//DatabaseTest d = new DatabaseTest();
+
 	}
 
 	@Override

@@ -13,8 +13,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.burfdevelopment.burfworld.Constants;
 
-import java.util.Random;
-
 /**
  * Created by burfies1 on 10/08/15.
  */
@@ -24,18 +22,35 @@ public class MeshBuilder {
 
     public Vector3 position;
     public boolean deleting = false;
-    private static Random rand = new Random();
     private Mesh mesh;
     public boolean needed = true;
     public boolean finished = false;
     public Array<Mesh> meshes = new Array<Mesh>();
     public Array<Matrix4> transformations= new Array<Matrix4>();
 
+    public int[][][] chunk = new int[Constants.chunkSize][Constants.chunkSize][Constants.chunkSize];
+
     private boolean dirty = false;
 
-    public void setDirtyPosition(int index) {
+    public void setDirtyPosition(int index, Model cube) {
+
+        Vector3 v = new Vector3(transformations.get(index).val[12] - position.x, transformations.get(index).val[13]- position.y, transformations.get(index).val[14]- position.z);
+
+        Gdx.app.log("PART 2", " " + v.x + " " + v.y + " " + v.z );
+        Gdx.app.log("PART 2", " " + (int)(v.x + (Constants.chunkSize / 2)) + " " + (int)(-v.y) + 1 + " " + (int)(v.z + (Constants.chunkSize / 2)));
+
+        chunk[(int)(v.x + (Constants.chunkSize / 2))][-(int)v.y][(int)(v.z + (Constants.chunkSize / 2))] = Constants.BrickState.DELETED.value;
         meshes.removeIndex(index);
         transformations.removeIndex(index);
+
+        if( chunk[(int)(v.x + (Constants.chunkSize / 2))][(int)(-v.y) + 1][(int)(v.z + (Constants.chunkSize / 2))] ==  Constants.BrickState.HIDDEN.value) {
+            ModelInstance model;
+            model = new ModelInstance(cube, v.x + position.x, v.y - 1 + position.y, v.z + position.z);
+            meshes.addAll(model.model.meshes);
+            transformations.add(model.transform);
+            chunk[(int) (v.x + (Constants.chunkSize / 2))][(int) (-v.y) + 1][(int) (v.z + (Constants.chunkSize / 2))] =  Constants.BrickState.SHOW.value;
+        }
+
         dirty = true;
     }
 
@@ -48,12 +63,6 @@ public class MeshBuilder {
     public MeshBuilder(Vector3 position, Model cube)
     {
         this.position = position;
-
-//        float r = rand.nextFloat();
-//        float g = rand.nextFloat();
-//        float b = rand.nextFloat();
-//        Color color = new Color(r, g, b, 1);
-
         createMeshes(cube);
     }
 
@@ -72,33 +81,21 @@ public class MeshBuilder {
     public void createMeshes(Model cube)
     {
         ModelInstance model;
-        Vector3 pos = new Vector3();
 
-        for (float x = 0; x < Constants.chunkSize; x ++ ) {
+        for (int x = 0; x < Constants.chunkSize; x ++ ) {
 
-            for (float y = 0; y < Constants.chunkSize; y ++ ) {
+            for (int y = 0; y < Constants.chunkSize; y ++ ) {
 
-                for (float z = 0; z < Constants.chunkSize; z ++ ) {
-
-                    pos.x = position.x + x - (Constants.chunkSize / 2);
-                    pos.y = position.y - y;
-                    pos.z = position.z + z - (Constants.chunkSize / 2);
-
-//                    if (dirtyPositions.size > 0)
-//                    {
-//                        Gdx.app.log("MyTag 2", pos.toString() + " " + dirtyPositions.toString() );
-//                    }
+                for (int z = 0; z < Constants.chunkSize; z ++ ) {
 
                     if (x > 0 && x < (Constants.chunkSize - 1) && y > 0 && y < (Constants.chunkSize - 1) && z > 0 && z < (Constants.chunkSize - 1) )
                     {
-
+                        chunk[x][y][z] = Constants.BrickState.HIDDEN.value;
                     }
-//                    else if (dirtyPositions.contains(pos, false))
-//                    {
-//                        Gdx.app.log("MyTag 2", "BOMB");
-//                    }
                     else
                     {
+                        chunk[x][y][z] = Constants.BrickState.SHOW.value;
+
                         //cube.materials.get(0).set(ColorAttribute.createDiffuse(color));
                         //new VertexAttribute(Usage.ColorPacked, 4, "a_color"));
                         //model.materials.get(0).set(ColorAttribute.createDiffuse(color));
@@ -106,6 +103,7 @@ public class MeshBuilder {
 
                         //model.transform.setToTranslation(position.x + x - (Constants.chunkSize / 2), position.y - y, position.z + z - (Constants.chunkSize / 2));
                         model = new ModelInstance(cube, position.x + x - (Constants.chunkSize / 2), position.y - y, position.z + z - (Constants.chunkSize / 2));
+
                         meshes.addAll(model.model.meshes);
                         transformations.add(model.transform);
                     }
@@ -128,16 +126,13 @@ public class MeshBuilder {
         Gdx.app.postRunnable(new Runnable() {
             @Override
             public void run() {
-
                 if (dirty == true)
                 {
-                    finished = false;
                     mesh.dispose();
                     mesh = MeshBuilder.mergeMeshes(meshes, transformations);
                     dirty = false;
                     finished = true;
                 }
-
             }
         });
     }
@@ -157,8 +152,7 @@ public class MeshBuilder {
         deleting = true;
         //mesh.dispose();
     }
-
-
+    
     public static Mesh mergeMeshes(Array<Mesh> meshes, Array<Matrix4> transformations)
     {
 

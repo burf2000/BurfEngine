@@ -4,12 +4,14 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Intersector;
@@ -55,6 +57,7 @@ public class GameRenderScreen  implements Screen {
 
     private ShaderProgram shaderProgram;
     private Texture texture;
+    private TextureRegion[][]  regions; // #2
 
     private ModelBuilder modelBuilder;
     private Model cube;
@@ -67,15 +70,29 @@ public class GameRenderScreen  implements Screen {
         font = new BitmapFont();
         font.setColor(Color.WHITE);
 
+        compileShaderTexture();
+
+        //regions[1][5].getTexture().bind();
+
         modelBuilder = new ModelBuilder();
-        cube = modelBuilder.createBox(1f, 1f, 1f,
-                new Material(ColorAttribute.createDiffuse(Color.BLUE)),
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
+//        cube = modelBuilder.createBox(Constants.cubeSize, Constants.cubeSize, Constants.cubeSize,
+//                new Material(ColorAttribute.createDiffuse(Color.BLUE)),
+//                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
+
+        modelBuilder.begin();
+        MeshPartBuilder mpb = modelBuilder.part("box", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates, new Material(ColorAttribute.createDiffuse(Color.BLUE)));
+        mpb.setUVRange(regions[1][5]);
+        mpb.box(1, 1, 1);
+        cube = modelBuilder.end();
+
 
         Skybox.createSkyBox();
 
-        camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        camera.near = 0.5f;
+        //camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        float aspectRatio = Gdx.graphics.getWidth() / Gdx.graphics.getHeight();
+        camera = new PerspectiveCamera(67, 1.0f * aspectRatio, 1.0f);
+
+        camera.near = 0.1f; // 0.5 //todo find out what this is again
         camera.far = 1000;
         fps = new ControlsController(camera , this, stage);
 
@@ -86,7 +103,7 @@ public class GameRenderScreen  implements Screen {
         lights.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1.f));
         lights.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, 1f, -0.8f, -0.2f));
 
-        compileShaderTexture();
+
     }
 
     public void setupChunks()
@@ -120,9 +137,6 @@ public class GameRenderScreen  implements Screen {
 
     public void checkCollison() {
 
-
-        float cubeSize = 1.2f;
-
         for (int i = 0; i < chunks2.size; i++) {
 
             if (camera.position.x > chunks2.get(i).position.x - (Constants.chunkSize / 2) &&
@@ -138,12 +152,12 @@ public class GameRenderScreen  implements Screen {
                     //Gdx.app.log("MyTag 3", "x " + camera.position);
 
 
-                    if (camera.position.x >  chunks2.get(i).transformations.get(a).val[12] - cubeSize &&
-                            camera.position.y >  chunks2.get(i).transformations.get(a).val[13] - cubeSize  &&
-                            camera.position.z >  chunks2.get(i).transformations.get(a).val[14] - cubeSize  &&
-                            camera.position.x <  chunks2.get(i).transformations.get(a).val[12] + cubeSize &&
-                            camera.position.y <  chunks2.get(i).transformations.get(a).val[13] + cubeSize  &&
-                            camera.position.z <  chunks2.get(i).transformations.get(a).val[14] + cubeSize
+                    if (camera.position.x >  chunks2.get(i).transformations.get(a).val[12] - Constants.cubeCollisonSize &&
+                            camera.position.y >  chunks2.get(i).transformations.get(a).val[13] - Constants.cubeCollisonSize  &&
+                            camera.position.z >  chunks2.get(i).transformations.get(a).val[14] - Constants.cubeCollisonSize  &&
+                            camera.position.x <  chunks2.get(i).transformations.get(a).val[12] + Constants.cubeCollisonSize &&
+                            camera.position.y <  chunks2.get(i).transformations.get(a).val[13] + Constants.cubeCollisonSize  &&
+                            camera.position.z <  chunks2.get(i).transformations.get(a).val[14] + Constants.cubeCollisonSize
                             )
                     {
 
@@ -198,6 +212,7 @@ public class GameRenderScreen  implements Screen {
 
         shaderProgram.begin();
         texture.bind();
+        //shaderProgram.setUniformi(uniformLocation, context.textureBinder.bind(texture));
         shaderProgram.setUniformMatrix("u_projTrans", camera.combined);
         shaderProgram.setAttributef("a_color", 1, 1, 1, 1);
         shaderProgram.setUniformi("u_texture", 0);
@@ -226,7 +241,7 @@ public class GameRenderScreen  implements Screen {
 
     public void removeObject(int chunkIndex, int meshIndex)
     {
-        chunks2.get(chunkIndex).setDirtyPosition(meshIndex);
+        chunks2.get(chunkIndex).setDirtyPosition(meshIndex, cube);
     }
 
     public void addObject(float x, float y, float z)
@@ -318,9 +333,9 @@ public class GameRenderScreen  implements Screen {
             Gdx.app.log("MyTag 2", "x " + v.x + " y " + v.y + " z " + v.z);
             Gdx.app.log("MyTag 2", "x " + MathUtils.round(v.x) + " y " + MathUtils.round(v.y) + " z " + MathUtils.round(v.z));
 
-            //removeObject(chunkIndex, meshIndex);
+            removeObject(chunkIndex, meshIndex);
 
-            addObject(v.x,v.y,v.z);
+            //addObject(v.x,v.y,v.z);
         }
 
         return 1;
@@ -358,8 +373,10 @@ public class GameRenderScreen  implements Screen {
             throw new GdxRuntimeException("Couldn't compile shader: " + shaderProgram.getLog());
         }
 
-        texture = new Texture("badlogic.jpg");
-        texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+        texture = new Texture("texturemap.png");
+        regions = TextureRegion.split(texture, 64, 64);
+
+        //texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
     }
 
     public void createChunk(float x, float z) { //, Vector3 direction
@@ -516,7 +533,13 @@ public class GameRenderScreen  implements Screen {
     @Override
     public void resize(int width, int height) {
         //camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        stage.getViewport().update(width, height, false);
+        //stage.getViewport().update(width, height, false);
+
+        //float aspectRatio = (float) width / (float) height;
+        //camera = new OrthographicCamera(2f * aspectRatio, 2f);
+
+//        float aspectRatio = (float) width / (float) height;
+//        camera = new PerspectiveCamera(67, 2f * aspectRatio, 2f);
     }
 
     @Override
