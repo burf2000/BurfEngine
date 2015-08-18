@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
@@ -50,6 +51,8 @@ public class GameRenderScreen  implements Screen {
     private static AsyncExecutor executor = new AsyncExecutor(1);
     private static AsyncTask task;
 
+    private SpriteBatch spriteBatch = new SpriteBatch();
+
     private ModelBatch modelBatch = new ModelBatch();;
     private Array<MeshBuilder> chunks2;
     private Vector3 oldPosition = new Vector3();
@@ -62,6 +65,9 @@ public class GameRenderScreen  implements Screen {
 
     private Array<Model> cubes;
 
+    public Boolean isJump = false;
+    private float jumping = 0.0f;
+
     @Override
     public void show() {
 
@@ -71,6 +77,8 @@ public class GameRenderScreen  implements Screen {
 
         compileShaderTexture();
         Skybox.createSkyBox();
+
+        //stage.setViewport(new StretchViewport(Gdx.graphics.getWidth() * 2,  Gdx.graphics.getHeight() * 2));
 
         //camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         float aspectRatio = Gdx.graphics.getWidth() / Gdx.graphics.getHeight();
@@ -87,7 +95,7 @@ public class GameRenderScreen  implements Screen {
         lights.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1.f));
         lights.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, 1f, -0.8f, -0.2f));
 
-
+        chunks2.add(new MeshBuilder(new Vector3((0 * Constants.chunkSize), Constants.chunkSize, (-1 * Constants.chunkSize)), cubes));
     }
 
     public void setupChunks()
@@ -110,10 +118,34 @@ public class GameRenderScreen  implements Screen {
         oldPosition.set(camera.position);
         fps.updateControls();
 
-        camera.position.set(camera.position.x, 1.0f, camera.position.z);
+        camera.position.set(camera.position.x, Constants.chunkSize / 2, camera.position.z);
+
+        if (isJump == true) {
+
+            jumping += Gdx.graphics.getDeltaTime() * 2;
+            camera.position.set(camera.position.x, Constants.chunkSize / 2 + jumping , camera.position.z);
+
+            if (jumping > Constants.maxJump)
+            {
+                isJump = false;
+            }
+        }
+        else
+        {
+            //todo smooth jumping
+            jumping -= Gdx.graphics.getDeltaTime() * 2;
+
+            if (jumping < 0)
+                jumping = 0;
+
+            camera.position.set(camera.position.x, Constants.chunkSize / 2 + jumping , camera.position.z);
+        }
+
         fps.update();
 
         checkCollison();
+
+
         //camera.position.set(oldPosition);
         // causing issue
         //
@@ -125,16 +157,15 @@ public class GameRenderScreen  implements Screen {
 
             if (camera.position.x > chunks2.get(i).position.x - (Constants.chunkSize / 2) &&
                     camera.position.x < chunks2.get(i).position.x + (Constants.chunkSize / 2) &&
-                    camera.position.y > chunks2.get(i).position.y - Constants.chunkSize &&
-                    camera.position.y < chunks2.get(i).position.y &&
+                    camera.position.y >= chunks2.get(i).position.y - (Constants.chunkSize / 2) &&
+                    camera.position.y <= chunks2.get(i).position.y + (Constants.chunkSize / 2) &&
                     camera.position.z > chunks2.get(i).position.z - (Constants.chunkSize / 2) &&
                     camera.position.z < chunks2.get(i).position.z + (Constants.chunkSize / 2)) {
 
                 for (int a = 0; a < chunks2.get(i).transformations.size; a++) {
 
                     //Gdx.app.log("MyTag 2", "x " + chunks2.get(i).transformations.get(a).val[12] + " y " + chunks2.get(i).transformations.get(a).val[13] + " z " + chunks2.get(i).transformations.get(a).val[14]);
-                    //Gdx.app.log("MyTag 3", "x " + camera.position);
-
+                    //Gdx.app.log("MyTag 3", "y " + camera.position.y + " y " + chunks2.get(i).position.y);
 
                     if (camera.position.x >  chunks2.get(i).transformations.get(a).val[12] - Constants.cubeCollisonSize &&
                             camera.position.y >  chunks2.get(i).transformations.get(a).val[13] - Constants.cubeCollisonSize  &&
@@ -156,8 +187,6 @@ public class GameRenderScreen  implements Screen {
 
         }
     }
-
-
 
     @Override
     public void render(float delta) {
@@ -207,6 +236,13 @@ public class GameRenderScreen  implements Screen {
 
         shaderProgram.end();
 
+        // todo fix
+        //spriteBatch.setProjectionMatrix(camera.combined);
+        spriteBatch.setProjectionMatrix(camera.combined);
+        spriteBatch.begin();
+        font.draw(spriteBatch, "Testing 1 2 3", 0, 10);
+        spriteBatch.end();
+
         //TODO Whats this for
         stage.getViewport().update(width(), height(), true);
         stage.act(delta);
@@ -253,13 +289,12 @@ public class GameRenderScreen  implements Screen {
         if (foundChunk == false)
         {
 
-            MeshBuilder m = new MeshBuilder(new Vector3(((int) x / Constants.chunkSize), ((int)y / Constants.chunkSize) + Constants.chunkSize, ((int) z / Constants.chunkSize)));
+            MeshBuilder m = new MeshBuilder(new Vector3(((int) x / Constants.chunkSize), ((int) y / Constants.chunkSize) + Constants.chunkSize, ((int) z / Constants.chunkSize)));
             m.addMesh(new Vector3(MathUtils.round(x), MathUtils.round(y), MathUtils.round(z)), cubes);
             // create empty chunk
             chunks2.add(m);
 
             // add item
-
         }
     }
 
@@ -317,15 +352,13 @@ public class GameRenderScreen  implements Screen {
             Gdx.app.log("MyTag 2", "x " + v.x + " y " + v.y + " z " + v.z);
             Gdx.app.log("MyTag 2", "x " + MathUtils.round(v.x) + " y " + MathUtils.round(v.y) + " z " + MathUtils.round(v.z));
 
-            removeObject(chunkIndex, meshIndex);
+            //removeObject(chunkIndex, meshIndex);
 
-            //addObject(v.x,v.y,v.z);
+            addObject(v.x,v.y,v.z);
         }
 
         return 1;
     }
-
-
 
     public void markAddChunk(float x, float z)
     {
@@ -378,7 +411,7 @@ public class GameRenderScreen  implements Screen {
                 modelBuilder.begin();
                 MeshPartBuilder mpb = modelBuilder.part("box", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates, new Material(ColorAttribute.createDiffuse(Color.BLUE)));
                 mpb.setUVRange(regions[x][y]);
-                mpb.box(1, 1, 1);
+                mpb.box(Constants.cubeSize, Constants.cubeSize, Constants.cubeSize);
                 cube = modelBuilder.end();
                 cubes.add(cube);
             }
@@ -546,6 +579,8 @@ public class GameRenderScreen  implements Screen {
 
 //        float aspectRatio = (float) width / (float) height;
 //        camera = new PerspectiveCamera(67, 2f * aspectRatio, 2f);
+
+        stage.getViewport().update(width, height , true);
     }
 
     @Override

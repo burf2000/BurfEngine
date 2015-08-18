@@ -1,4 +1,4 @@
-//package com.burfdevelopment.burfworld;
+//package com.burfdevelopment.burfworld.Database;
 //
 //import java.sql.ResultSet;
 //import java.sql.SQLException;

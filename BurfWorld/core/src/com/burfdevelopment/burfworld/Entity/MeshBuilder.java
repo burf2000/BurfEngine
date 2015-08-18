@@ -35,23 +35,26 @@ public class MeshBuilder {
 
     public void setDirtyPosition(int index, Array<Model> cubes) {
 
-        int r = MathUtils.random(cubes.size -1);
-
         Vector3 v = new Vector3(transformations.get(index).val[12] - position.x, transformations.get(index).val[13]- position.y, transformations.get(index).val[14]- position.z);
 
         Gdx.app.log("PART 2", " " + v.x + " " + v.y + " " + v.z );
-        Gdx.app.log("PART 2", " " + (int)(v.x + (Constants.chunkSize / 2)) + " " + (int)(-v.y) + 1 + " " + (int)(v.z + (Constants.chunkSize / 2)));
+        Gdx.app.log("PART 2", " " + (int)(v.x + (Constants.chunkSize / 2)) + " " + (int)(v.y + (Constants.chunkSize / 2)) + " " + (int)(v.z + (Constants.chunkSize / 2)));
 
-        chunk[(int)(v.x + (Constants.chunkSize / 2))][-(int)v.y][(int)(v.z + (Constants.chunkSize / 2))] = Constants.BrickState.DELETED.value;
+        int indexX, indexY, indexZ;
+        indexX = (int)(v.x + (Constants.chunkSize / 2));
+        indexY = (int)(v.y + (Constants.chunkSize / 2));
+        indexZ = (int)(v.z + (Constants.chunkSize / 2));
+
+        chunk[indexX][indexY][indexZ] = Constants.BrickState.DELETED.value;
         meshes.removeIndex(index);
         transformations.removeIndex(index);
 
-        if( chunk[(int)(v.x + (Constants.chunkSize / 2))][(int)(-v.y) + 1][(int)(v.z + (Constants.chunkSize / 2))] ==  Constants.BrickState.HIDDEN.value) {
-            ModelInstance model;
-            model = new ModelInstance(cubes.get(r), v.x + position.x, v.y - 1 + position.y, v.z + position.z);
-            meshes.addAll(model.model.meshes);
-            transformations.add(model.transform);
-            chunk[(int) (v.x + (Constants.chunkSize / 2))][(int) (-v.y) + 1][(int) (v.z + (Constants.chunkSize / 2))] =  Constants.BrickState.SHOW.value;
+        if( chunk[indexX][indexY - 1][indexZ] ==  Constants.BrickState.HIDDEN.value) {
+
+            Gdx.app.log("PART 3", " " + (v.x + position.x) + " " + ((v.y + position.y) - 1) + " " + (v.z + position.z) );
+            addMesh(new Vector3(v.x + position.x, (v.y + position.y) - 1 , v.z + position.z),cubes);
+
+            chunk[indexX][indexY - 1][indexZ] =  Constants.BrickState.SHOW.value;
         }
 
         dirty = true;
@@ -109,7 +112,7 @@ public class MeshBuilder {
                         //model.model.materials.get(0).set(ColorAttribute.createDiffuse(color));
 
                         //model.transform.setToTranslation(position.x + x - (Constants.chunkSize / 2), position.y - y, position.z + z - (Constants.chunkSize / 2));
-                        model = new ModelInstance(cubes.get(r), position.x + x - (Constants.chunkSize / 2), position.y - y, position.z + z - (Constants.chunkSize / 2));
+                        model = new ModelInstance(cubes.get(r), position.x + x - (Constants.chunkSize / 2), position.y + y - (Constants.chunkSize / 2), position.z + z - (Constants.chunkSize / 2));
 
                         meshes.addAll(model.model.meshes);
                         transformations.add(model.transform);

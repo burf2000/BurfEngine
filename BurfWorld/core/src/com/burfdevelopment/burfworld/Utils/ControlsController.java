@@ -61,6 +61,17 @@ public class ControlsController extends FirstPersonCameraController {
 
     }
 
+    @Override
+    public boolean keyDown (int keycode) {
+
+        if (keycode == Input.Keys.SPACE)
+        {
+            gameRenderScreen.isJump = true;
+        }
+
+        return super.keyDown(keycode);
+    }
+
     public void updateControls(){
 
         if (Gdx.app.getType() == Application.ApplicationType.Android || Gdx.app.getType() == Application.ApplicationType.iOS) {

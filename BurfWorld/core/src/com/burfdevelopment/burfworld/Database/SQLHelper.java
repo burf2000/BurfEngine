@@ -1,8 +1,5 @@
-//package com.burfdevelopment.burfworld;
+//package com.burfdevelopment.burfworld.Database;
 //
-///**
-// * Created by burfies1 on 28/07/15.
-// */
 //import SQLite.JDBCDriver;
 //
 //import java.io.File;
@@ -10,6 +7,11 @@
 //import java.sql.ResultSet;
 //import java.sql.SQLException;
 //import java.sql.Statement;
+//
+///**
+// * Created by burfies1 on 28/07/15.
+// */
+//
 //
 //public class SQLHelper {
 //
