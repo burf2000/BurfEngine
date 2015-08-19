@@ -112,7 +112,7 @@ public class MeshBuilder {
                         //model.model.materials.get(0).set(ColorAttribute.createDiffuse(color));
 
                         //model.transform.setToTranslation(position.x + x - (Constants.chunkSize / 2), position.y - y, position.z + z - (Constants.chunkSize / 2));
-                        model = new ModelInstance(cubes.get(r), position.x + x - (Constants.chunkSize / 2), position.y + y - (Constants.chunkSize / 2), position.z + z - (Constants.chunkSize / 2));
+                        model = new ModelInstance(cubes.get(r), (position.x + x - (Constants.chunkSize / 2)) * Constants.cubeSize, (position.y + y - (Constants.chunkSize / 2)) * Constants.cubeSize, (position.z + z - (Constants.chunkSize / 2)) * Constants.cubeSize);
 
                         meshes.addAll(model.model.meshes);
                         transformations.add(model.transform);

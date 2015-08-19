@@ -15,6 +15,7 @@ public class Constants {
     public static float cubeSize = 1.0f; //1
 
     public static float maxJump = 2;
+    public static float headHeight = 1.0f;
 
     public enum BrickState {
         DELETED(-1) , HIDDEN(0) , SHOW(1);

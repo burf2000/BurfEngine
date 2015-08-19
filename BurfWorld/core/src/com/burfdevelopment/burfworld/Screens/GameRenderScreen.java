@@ -78,12 +78,7 @@ public class GameRenderScreen  implements Screen {
         compileShaderTexture();
         Skybox.createSkyBox();
 
-        //stage.setViewport(new StretchViewport(Gdx.graphics.getWidth() * 2,  Gdx.graphics.getHeight() * 2));
-
-        //camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        float aspectRatio = Gdx.graphics.getWidth() / Gdx.graphics.getHeight();
-        camera = new PerspectiveCamera(67, 1.0f * aspectRatio, 1.0f);
-
+        camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(),Gdx.graphics.getHeight());
         camera.near = 0.1f; // 0.5 //todo find out what this is again
         camera.far = 1000;
         fps = new ControlsController(camera , this, stage);
@@ -118,12 +113,12 @@ public class GameRenderScreen  implements Screen {
         oldPosition.set(camera.position);
         fps.updateControls();
 
-        camera.position.set(camera.position.x, Constants.chunkSize / 2, camera.position.z);
+        camera.position.set(camera.position.x, (Constants.chunkSize / 2) * Constants.cubeSize + Constants.headHeight, camera.position.z);
 
         if (isJump == true) {
 
             jumping += Gdx.graphics.getDeltaTime() * 2;
-            camera.position.set(camera.position.x, Constants.chunkSize / 2 + jumping , camera.position.z);
+            camera.position.set(camera.position.x, (Constants.chunkSize / 2) * Constants.cubeSize + jumping + Constants.headHeight, camera.position.z);
 
             if (jumping > Constants.maxJump)
             {
@@ -138,7 +133,7 @@ public class GameRenderScreen  implements Screen {
             if (jumping < 0)
                 jumping = 0;
 
-            camera.position.set(camera.position.x, Constants.chunkSize / 2 + jumping , camera.position.z);
+            camera.position.set(camera.position.x, (Constants.chunkSize / 2) * Constants.cubeSize + jumping + Constants.headHeight , camera.position.z);
         }
 
         fps.update();
@@ -411,8 +406,9 @@ public class GameRenderScreen  implements Screen {
                 modelBuilder.begin();
                 MeshPartBuilder mpb = modelBuilder.part("box", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates, new Material(ColorAttribute.createDiffuse(Color.BLUE)));
                 mpb.setUVRange(regions[x][y]);
-                mpb.box(Constants.cubeSize, Constants.cubeSize, Constants.cubeSize);
+                mpb.box(1.0f, 1.0f, 1.0f);
                 cube = modelBuilder.end();
+                cube.meshes.get(0).scale(Constants.cubeSize,Constants.cubeSize,Constants.cubeSize);
                 cubes.add(cube);
             }
         }
@@ -571,15 +567,6 @@ public class GameRenderScreen  implements Screen {
 
     @Override
     public void resize(int width, int height) {
-        //camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        //stage.getViewport().update(width, height, false);
-
-        //float aspectRatio = (float) width / (float) height;
-        //camera = new OrthographicCamera(2f * aspectRatio, 2f);
-
-//        float aspectRatio = (float) width / (float) height;
-//        camera = new PerspectiveCamera(67, 2f * aspectRatio, 2f);
-
         stage.getViewport().update(width, height , true);
     }
 
