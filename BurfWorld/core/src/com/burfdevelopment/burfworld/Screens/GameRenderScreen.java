@@ -136,9 +136,11 @@ public class GameRenderScreen  implements Screen {
             camera.position.set(camera.position.x, (Constants.chunkSize / 2) * Constants.cubeSize + jumping + Constants.headHeight , camera.position.z);
         }
 
+        checkCollison();
+
         fps.update();
 
-        checkCollison();
+
 
 
         //camera.position.set(oldPosition);
@@ -163,15 +165,31 @@ public class GameRenderScreen  implements Screen {
                     //Gdx.app.log("MyTag 3", "y " + camera.position.y + " y " + chunks2.get(i).position.y);
 
                     if (camera.position.x >  chunks2.get(i).transformations.get(a).val[12] - Constants.cubeCollisonSize &&
-                            camera.position.y >  chunks2.get(i).transformations.get(a).val[13] - Constants.cubeCollisonSize  &&
                             camera.position.z >  chunks2.get(i).transformations.get(a).val[14] - Constants.cubeCollisonSize  &&
                             camera.position.x <  chunks2.get(i).transformations.get(a).val[12] + Constants.cubeCollisonSize &&
-                            camera.position.y <  chunks2.get(i).transformations.get(a).val[13] + Constants.cubeCollisonSize  &&
                             camera.position.z <  chunks2.get(i).transformations.get(a).val[14] + Constants.cubeCollisonSize
                             )
                     {
 
-                        camera.position.set(oldPosition);
+                        Gdx.app.log("MyTag 3", "h " + chunks2.get(i).transformations.get(a).val[13] + " h " + camera.position.y);
+
+                        if (camera.position.y >  chunks2.get(i).transformations.get(a).val[13] - Constants.cubeCollisonSize  &&
+                                camera.position.y <  chunks2.get(i).transformations.get(a).val[13] + Constants.cubeCollisonSize)
+                        {
+                            camera.position.set(oldPosition);
+                        }
+                        else if (chunks2.get(i).transformations.get(a).val[13] + 1.0 <= camera.position.y)
+                        {
+                            Gdx.app.log("MyTag 3","POO");
+                            //camera.position.y += 1.0f;
+                            camera.position.set(camera.position.x , camera.position.y + 2.0f, camera.position.z);
+                        }
+
+                        //todo height!!
+                        //
+                        //  &&
+
+
                         //Gdx.app.log("MyTag 3", "x " + chunks2.get(i).transformations.get(a).val[12] + " y " + chunks2.get(i).transformations.get(a).val[13] + " z " + chunks2.get(i).transformations.get(a).val[14]);
                     }
 
