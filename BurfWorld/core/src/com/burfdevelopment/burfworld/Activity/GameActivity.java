@@ -2,7 +2,7 @@ package com.burfdevelopment.burfworld.Activity;
 
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Game;
-import com.burfdevelopment.burfworld.Database.DatabaseTest;
+import com.burfdevelopment.burfworld.Database.DatabaseHelper;
 import com.burfdevelopment.burfworld.Networking.Parse;
 import com.burfdevelopment.burfworld.Screens.MainMenuScreen;
 import com.burfdevelopment.burfworld.Skybox;
@@ -34,7 +34,7 @@ public class GameActivity extends Game implements ApplicationListener {
 //			}
 //		}
 
-		DatabaseTest d = new DatabaseTest();
+		//DatabaseHelper d = new DatabaseHelper();
 		//SQLHelper h = new SQLHelper("simon");
 
 

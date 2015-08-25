@@ -27,6 +27,7 @@ import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.async.AsyncExecutor;
 import com.badlogic.gdx.utils.async.AsyncTask;
 import com.burfdevelopment.burfworld.Constants;
+import com.burfdevelopment.burfworld.Database.DatabaseHelper;
 import com.burfdevelopment.burfworld.Entity.MeshBuilder;
 import com.burfdevelopment.burfworld.Skybox;
 import com.burfdevelopment.burfworld.Utils.ControlsController;
@@ -67,6 +68,7 @@ public class GameRenderScreen  implements Screen {
 
     public Boolean isJump = false;
     private float jumping = 0.0f;
+    private float currentHeight = 20.0f;
 
     @Override
     public void show() {
@@ -113,12 +115,12 @@ public class GameRenderScreen  implements Screen {
         oldPosition.set(camera.position);
         fps.updateControls();
 
-        camera.position.set(camera.position.x, (Constants.chunkSize / 2) * Constants.cubeSize + Constants.headHeight, camera.position.z);
+        //camera.position.set(camera.position.x, (Constants.chunkSize / 2) * Constants.cubeSize + Constants.headHeight, camera.position.z);
 
         if (isJump == true) {
 
             jumping += Gdx.graphics.getDeltaTime() * 2;
-            camera.position.set(camera.position.x, (Constants.chunkSize / 2) * Constants.cubeSize + jumping + Constants.headHeight, camera.position.z);
+            //camera.position.set(camera.position.x, (Constants.chunkSize / 2) * Constants.cubeSize + jumping + Constants.headHeight, camera.position.z);
 
             if (jumping > Constants.maxJump)
             {
@@ -133,15 +135,11 @@ public class GameRenderScreen  implements Screen {
             if (jumping < 0)
                 jumping = 0;
 
-            camera.position.set(camera.position.x, (Constants.chunkSize / 2) * Constants.cubeSize + jumping + Constants.headHeight , camera.position.z);
+            //camera.position.set(camera.position.x, (Constants.chunkSize / 2) * Constants.cubeSize + jumping + Constants.headHeight , camera.position.z);
         }
 
-        checkCollison();
-
         fps.update();
-
-
-
+        checkCollison();
 
         //camera.position.set(oldPosition);
         // causing issue
@@ -150,53 +148,84 @@ public class GameRenderScreen  implements Screen {
 
     public void checkCollison() {
 
+        float height = 0;
+        boolean collison = false;
+
         for (int i = 0; i < chunks2.size; i++) {
 
             if (camera.position.x > chunks2.get(i).position.x - (Constants.chunkSize / 2) &&
                     camera.position.x < chunks2.get(i).position.x + (Constants.chunkSize / 2) &&
-                    camera.position.y >= chunks2.get(i).position.y - (Constants.chunkSize / 2) &&
-                    camera.position.y <= chunks2.get(i).position.y + (Constants.chunkSize / 2) &&
+                    //camera.position.y >= chunks2.get(i).position.y - (Constants.chunkSize / 2) &&
+                    //camera.position.y <= chunks2.get(i).position.y + (Constants.chunkSize / 2) &&
                     camera.position.z > chunks2.get(i).position.z - (Constants.chunkSize / 2) &&
                     camera.position.z < chunks2.get(i).position.z + (Constants.chunkSize / 2)) {
 
                 for (int a = 0; a < chunks2.get(i).transformations.size; a++) {
 
                     //Gdx.app.log("MyTag 2", "x " + chunks2.get(i).transformations.get(a).val[12] + " y " + chunks2.get(i).transformations.get(a).val[13] + " z " + chunks2.get(i).transformations.get(a).val[14]);
-                    //Gdx.app.log("MyTag 3", "y " + camera.position.y + " y " + chunks2.get(i).position.y);
-
+                    //Gdx.app.log("MyTag 1", "y " + camera.position.y + " y " + chunks2.get(i).position.y);
                     if (camera.position.x >  chunks2.get(i).transformations.get(a).val[12] - Constants.cubeCollisonSize &&
                             camera.position.z >  chunks2.get(i).transformations.get(a).val[14] - Constants.cubeCollisonSize  &&
                             camera.position.x <  chunks2.get(i).transformations.get(a).val[12] + Constants.cubeCollisonSize &&
-                            camera.position.z <  chunks2.get(i).transformations.get(a).val[14] + Constants.cubeCollisonSize
-                            )
+                            camera.position.z <  chunks2.get(i).transformations.get(a).val[14] + Constants.cubeCollisonSize)
                     {
 
-                        Gdx.app.log("MyTag 3", "h " + chunks2.get(i).transformations.get(a).val[13] + " h " + camera.position.y);
-
+                        //Gdx.app.log("MyTag 2", "h " + chunks2.get(i).transformations.get(a).val[13] + " h " + camera.position.y);
                         if (camera.position.y >  chunks2.get(i).transformations.get(a).val[13] - Constants.cubeCollisonSize  &&
                                 camera.position.y <  chunks2.get(i).transformations.get(a).val[13] + Constants.cubeCollisonSize)
                         {
-                            camera.position.set(oldPosition);
+                            //Gdx.app.log("MyTag 3","COLLISONs");
+                            collison = true;
+                            break;
                         }
                         else if (chunks2.get(i).transformations.get(a).val[13] + 1.0 <= camera.position.y)
                         {
-                            Gdx.app.log("MyTag 3","POO");
-                            //camera.position.y += 1.0f;
-                            camera.position.set(camera.position.x , camera.position.y + 2.0f, camera.position.z);
+                            //Gdx.app.log("MyTag 4","POO");
+                            if (chunks2.get(i).transformations.get(a).val[13] + Constants.headHeight > height)
+                            {
+                                height = chunks2.get(i).transformations.get(a).val[13] + Constants.headHeight;
+                            }
                         }
-
-                        //todo height!!
-                        //
-                        //  &&
-
-
-                        //Gdx.app.log("MyTag 3", "x " + chunks2.get(i).transformations.get(a).val[12] + " y " + chunks2.get(i).transformations.get(a).val[13] + " z " + chunks2.get(i).transformations.get(a).val[14]);
+                        else
+                        {
+                            //Gdx.app.log("MyTag 5","POO3");
+                            if (chunks2.get(i).transformations.get(a).val[13] > height)
+                            {
+                                height = chunks2.get(i).transformations.get(a).val[13];
+                            }
+                        }
                     }
 
                     //Gdx.app.log("FIRE", "X " + ((int) camera.position.x / Constants.chunkSize) + " y " + ((int) camera.position.y / Constants.chunkSize) + " z " + ((int) camera.position.z / Constants.chunkSize));
                     //wGdx.app.log("FIRE", "X " + chunks2.get(i).position.x + " y " + chunks2.get(i).position.y + " z " + chunks2.get(i).position.z);
                 }
             }
+        }
+
+        if (collison == true)
+        {
+           // Gdx.app.log("MyTag 2","COLLISONs");
+            camera.position.set(oldPosition);
+        }
+        else {
+
+            if (height > currentHeight + 2.0f)
+            {
+                camera.position.set(oldPosition);
+            }
+            else if ( height < currentHeight)
+            {
+                //Gdx.app.log("MyTag 3"," c " + currentHeight);
+                currentHeight -= Gdx.graphics.getDeltaTime() * 2;
+                camera.position.set(camera.position.x, currentHeight + jumping, camera.position.z);
+            }
+            else
+            {
+                //Gdx.app.log("MyTag 4"," c2 " + currentHeight);
+                currentHeight = height;
+                camera.position.set(camera.position.x, currentHeight + jumping, camera.position.z);
+            }
+
 
         }
     }
@@ -269,6 +298,7 @@ public class GameRenderScreen  implements Screen {
         stage.getBatch().begin();
         font.draw(stage.getBatch(), "FPS: " + Gdx.graphics.getFramesPerSecond() + " Cube Count " + Constants.cubeCount + " rend Count " + Constants.renderCount, 10, Gdx.graphics.getHeight() - 10);
         font.draw(stage.getBatch(), "Mem: " + Gdx.app.getJavaHeap() / 1000000f + " " + Gdx.app.getNativeHeap() / 1000000f , 10, Gdx.graphics.getHeight() - 30);
+        font.draw(stage.getBatch(), "X: " + camera.position.x + " Y " + camera.position.y + " Z " + camera.position.z , 10, Gdx.graphics.getHeight() - 50);
         stage.getBatch().end();
     }
 
@@ -301,8 +331,9 @@ public class GameRenderScreen  implements Screen {
 
         if (foundChunk == false)
         {
+            Vector3 v = new Vector3((((int) x / Constants.chunkSize)) * Constants.chunkSize, ((int) y / Constants.chunkSize) + Constants.chunkSize, (((int) z / Constants.chunkSize)) * Constants.chunkSize);
+            MeshBuilder m = new MeshBuilder(v);
 
-            MeshBuilder m = new MeshBuilder(new Vector3(((int) x / Constants.chunkSize), ((int) y / Constants.chunkSize) + Constants.chunkSize, ((int) z / Constants.chunkSize)));
             m.addMesh(new Vector3(MathUtils.round(x), MathUtils.round(y), MathUtils.round(z)), cubes);
             // create empty chunk
             chunks2.add(m);
@@ -368,6 +399,9 @@ public class GameRenderScreen  implements Screen {
             //removeObject(chunkIndex, meshIndex);
 
             addObject(v.x,v.y,v.z);
+
+            String s = chunks2.get(0).chunkToString();
+            Gdx.app.log("CHUNK",s);
         }
 
         return 1;
@@ -380,6 +414,7 @@ public class GameRenderScreen  implements Screen {
 
             if(chunks2.get(i).position.x == (x * Constants.chunkSize) && chunks2.get(i).position.z == (z * Constants.chunkSize))
             {
+                //Gdx.app.log("ERROR", "Adding2 " + chunks2.get(i).position.y);
                 chunks2.get(i).needed = true;
                 found = true;
             }
@@ -387,7 +422,18 @@ public class GameRenderScreen  implements Screen {
 
         if (found == false)
         {
+            Gdx.app.log("ERROR", "Adding " + new Vector3((x * Constants.chunkSize), 0, (z * Constants.chunkSize)));
             chunks2.add(new MeshBuilder(new Vector3((x * Constants.chunkSize), 0, (z * Constants.chunkSize)), cubes));
+
+            Array<Vector3> v = MeshBuilder.database.getHeightChunk((x * Constants.chunkSize), (z * Constants.chunkSize));
+
+            for (int a = 0; a < v.size; a ++ ) {
+
+                if (v.get(a).y != 0)
+                {
+                    chunks2.add(new MeshBuilder(v.get(a), cubes));
+                }
+            }
         }
     }
 
@@ -564,12 +610,11 @@ public class GameRenderScreen  implements Screen {
 //        }
 
         int size = 5;
-
         for (int xx = 0 ; xx < size ; xx++)
         {
             for (int zz = 0 ; zz < size ; zz++)
             {
-                markAddChunk(x + xx - ((size - 1) /2),z + zz - ((size - 1) /2));
+                markAddChunk(x + xx - ((size - 1) / 2),z + zz - ((size - 1) /2));
             }
         }
 
@@ -577,8 +622,10 @@ public class GameRenderScreen  implements Screen {
 
             if (chunks2.get(i).needed == false)
             {
+                Gdx.app.log("ERROR", "DELETING " + chunks2.get(i).position);
                 MeshBuilder m = chunks2.get(i);
                 m.dispose();
+                chunks2.removeIndex(i);
             }
         }
     }

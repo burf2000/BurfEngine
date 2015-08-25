@@ -13,6 +13,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.burfdevelopment.burfworld.Constants;
+import com.burfdevelopment.burfworld.Database.DatabaseHelper;
 
 /**
  * Created by burfies1 on 10/08/15.
@@ -32,6 +33,7 @@ public class MeshBuilder {
     public int[][][] chunk = new int[Constants.chunkSize][Constants.chunkSize][Constants.chunkSize];
 
     private boolean dirty = false;
+    public static DatabaseHelper database = new DatabaseHelper();
 
     public void setDirtyPosition(int index, Array<Model> cubes) {
 
@@ -58,18 +60,50 @@ public class MeshBuilder {
         }
 
         dirty = true;
+
+        database.updateChunk(position.x,position.y,position.z,chunkToString());
     }
 
+//    static {
+//
+//    }
     public MeshBuilder(Vector3 position)
     {
         this.position = position;
+        needed = true;
+
+        database.addChunk(position.x, position.y,position.z,chunkToString());
     }
 
 
     public MeshBuilder(Vector3 position, Array<Model> cubes)
     {
         this.position = position;
-        createMeshes(cubes);
+
+        String data = database.getChunk(position.x, position.y, position.z);
+
+        if (data == null)
+        {
+            Gdx.app.log("NOT FOUND","NOT FOUND");
+            createMeshes(cubes);
+        }
+        else
+        {
+            Gdx.app.log("FOUND","FOUND");
+
+            String[] s = data.split(",");
+            populateMeshes(cubes,s);
+        }
+
+        needed = true;
+    }
+
+    public MeshBuilder(Vector3 position, Array<Model> cubes, String data)
+    {
+        this.position = position;
+        String[] s = data.split(",");
+        populateMeshes(cubes, s);
+        needed = true;
     }
 
     public void addMesh(Vector3 pos, Array<Model> cubes)
@@ -84,6 +118,54 @@ public class MeshBuilder {
 
         mesh = MeshBuilder.mergeMeshes(meshes, transformations);
         finished = true;
+
+        Gdx.app.log("PART 3", " " + (int)pos.x + (Constants.chunkSize / 2) + " " + (int)pos.y + " " + (int)pos.z + (Constants.chunkSize / 2) );
+
+        int x,y,z;
+        x = (int) pos.x % 16;
+        y = (int) pos.y % 16;
+        z = (int) pos.z % 16;
+
+        chunk[x + (Constants.chunkSize / 2) ][y][z + (Constants.chunkSize / 2)] = Constants.BrickState.SHOW.value + r;
+
+        String s = chunkToString();
+
+        database.updateChunk(position.x,position.y,position.z,chunkToString());
+    }
+
+    public void populateMeshes(Array<Model> cubes, String[] data)
+    {
+        ModelInstance model;
+        int index = 0;
+
+        for (int x = 0; x < Constants.chunkSize; x ++ ) {
+
+            for (int y = 0; y < Constants.chunkSize; y ++ )
+                for (int z = 0; z < Constants.chunkSize; z++) {
+
+                    int textureValue = Integer.parseInt(data[index]);
+
+                    chunk[x][y][z] = textureValue;
+
+                    if (textureValue > 0)
+                    {
+                        model = new ModelInstance(cubes.get(chunk[x][y][z] - 1), (position.x + x - (Constants.chunkSize / 2)) * Constants.cubeSize, (position.y + y - (Constants.chunkSize / 2)) * Constants.cubeSize, (position.z + z - (Constants.chunkSize / 2)) * Constants.cubeSize);
+                        meshes.addAll(model.model.meshes);
+                        transformations.add(model.transform);
+                    }
+
+                    index += 1;
+                }
+        }
+
+        Gdx.app.postRunnable(new Runnable() {
+            @Override
+            public void run() {
+
+                mesh = MeshBuilder.mergeMeshes(meshes, transformations);
+                finished = true;
+            }
+        });
     }
 
     public void createMeshes(Array<Model> cubes)
@@ -104,7 +186,9 @@ public class MeshBuilder {
                     {
                         int r = MathUtils.random(cubes.size -1);
 
-                        chunk[x][y][z] = Constants.BrickState.SHOW.value;
+                       // r = Constants.TextureName.GRASS_NORMAL.ordinal();
+
+                        chunk[x][y][z] = Constants.BrickState.SHOW.value + r;
 
                         //cube.materials.get(0).set(ColorAttribute.createDiffuse(color));
                         //new VertexAttribute(Usage.ColorPacked, 4, "a_color"));
@@ -121,14 +205,33 @@ public class MeshBuilder {
             }
         }
 
+        database.addChunk(position.x, position.y,position.z,chunkToString());
+
         Gdx.app.postRunnable(new Runnable() {
             @Override
             public void run() {
-
                 mesh = MeshBuilder.mergeMeshes(meshes, transformations);
                 finished = true;
             }
         });
+    }
+
+    public String chunkToString() {
+
+        String s = new String();
+
+        for (int x = 0; x < Constants.chunkSize; x++) {
+
+            for (int y = 0; y < Constants.chunkSize; y++) {
+
+                for (int z = 0; z < Constants.chunkSize; z++) {
+
+                    s += chunk[x][y][z] + ",";
+                }
+            }
+        }
+
+        return s.substring(0, s.length()-1);
     }
 
     public void checkDirty()
