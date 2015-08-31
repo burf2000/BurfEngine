@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.PixmapPacker;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Environment;
@@ -12,6 +13,7 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
@@ -31,6 +33,7 @@ import com.burfdevelopment.burfworld.Database.DatabaseHelper;
 import com.burfdevelopment.burfworld.Entity.MeshBuilder;
 import com.burfdevelopment.burfworld.Skybox;
 import com.burfdevelopment.burfworld.Utils.ControlsController;
+
 
 /**
  * Created by burfies1 on 25/07/15.
@@ -67,8 +70,11 @@ public class GameRenderScreen  implements Screen {
     private Array<Model> cubes;
 
     public Boolean isJump = false;
-    private float jumping = 0.0f;
-    private float currentHeight = 20.0f;
+    public float jumping = 0.0f;
+    private float currentHeight = 15.0f;
+
+
+    private Model person;
 
     @Override
     public void show() {
@@ -92,7 +98,18 @@ public class GameRenderScreen  implements Screen {
         lights.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1.f));
         lights.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, 1f, -0.8f, -0.2f));
 
-        chunks2.add(new MeshBuilder(new Vector3((0 * Constants.chunkSize), Constants.chunkSize, (-1 * Constants.chunkSize)), cubes));
+
+        modelBuilder.begin();
+        MeshPartBuilder mpb = modelBuilder.part("box", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates, new Material(ColorAttribute.createDiffuse(Color.BLUE)));
+        mpb.setUVRange(regions[1][1]);
+        mpb.box(0, 9, 0, 0.5f, 0.5f, 0.5f);
+        mpb.box(0,8,0,0.5f,0.5f,0.5f);
+
+        person = modelBuilder.end();
+
+
+
+        //chunks2.add(new MeshBuilder(new Vector3((0 * Constants.chunkSize), Constants.chunkSize, (-1 * Constants.chunkSize)), cubes));
     }
 
     public void setupChunks()
@@ -119,7 +136,7 @@ public class GameRenderScreen  implements Screen {
 
         if (isJump == true) {
 
-            jumping += Gdx.graphics.getDeltaTime() * 2;
+            jumping += Gdx.graphics.getDeltaTime() * Constants.jumpRate;
             //camera.position.set(camera.position.x, (Constants.chunkSize / 2) * Constants.cubeSize + jumping + Constants.headHeight, camera.position.z);
 
             if (jumping > Constants.maxJump)
@@ -130,7 +147,7 @@ public class GameRenderScreen  implements Screen {
         else
         {
             //todo smooth jumping
-            jumping -= Gdx.graphics.getDeltaTime() * 2;
+            jumping -= Gdx.graphics.getDeltaTime() * Constants.jumpRate;
 
             if (jumping < 0)
                 jumping = 0;
@@ -138,8 +155,9 @@ public class GameRenderScreen  implements Screen {
             //camera.position.set(camera.position.x, (Constants.chunkSize / 2) * Constants.cubeSize + jumping + Constants.headHeight , camera.position.z);
         }
 
-        fps.update();
         checkCollison();
+        fps.update();
+
 
         //camera.position.set(oldPosition);
         // causing issue
@@ -264,7 +282,6 @@ public class GameRenderScreen  implements Screen {
         Gdx.gl20.glCullFace(GL20.GL_BACK);
         Gdx.gl20.glEnable(GL20.GL_DEPTH_TEST);
 
-
         shaderProgram.begin();
         texture.bind();
         //shaderProgram.setUniformi(uniformLocation, context.textureBinder.bind(texture));
@@ -275,6 +292,9 @@ public class GameRenderScreen  implements Screen {
         for (int i = 0; i < chunks2.size; i ++ ) {
             chunks2.get(i).render(shaderProgram);
         }
+
+        //person.getNode("box").translation(new Vector3(0f,2f,0f));
+        person.meshes.get(0).render(shaderProgram, GL20.GL_TRIANGLES);
 
         shaderProgram.end();
 
@@ -307,37 +327,153 @@ public class GameRenderScreen  implements Screen {
         chunks2.get(chunkIndex).setDirtyPosition(meshIndex, cubes);
     }
 
-    public void addObject(float x, float y, float z)
+    public void addObject(float x, float y, float z, Vector3 vv)
     {
-        Gdx.app.log("PART 2", "x " + x + "y " + y + " z " + z );
-        Gdx.app.log("PART 2", "x " + (int) x / Constants.chunkSize + " y " + MathUtils.round(y) + " z " + (int) z / Constants.chunkSize );
+        //todo tidy this up
+        Gdx.app.log("PART 1", "x " + x + "y " + y + " z " + z + " V" + vv.toString() );
+        //Gdx.app.log("PART 2", "x " + (int) x / Constants.chunkSize + " y " + MathUtils.round(y) + " z " + (int) z / Constants.chunkSize );
+        //Gdx.app.log("PART 2", "SIZE " + chunks2.size);
+
+        // work out what side we touched
+        float xDif, yDif, zDif;
+        float xOffset = 0, yOffset = 0, zOffset = 0;
+        float dif = 0.5f;
+
+        if (x > vv.x)
+        {
+           xDif = x - vv.x;
+        }
+        else
+        {
+            xDif = vv.x - x;
+        }
+
+        if (y > vv.y)
+        {
+            yDif = y - vv.y;
+        }
+        else
+        {
+            yDif = vv.y - y;
+        }
+
+        if (z > vv.z)
+        {
+            zDif =z - vv.z;
+        }
+        else
+        {
+            zDif = vv.z - z;
+        }
+
+        //Gdx.app.log("PART 1", "x " + xDif + "y " + yDif + " z " + zDif);
+
+        if (xDif > yDif && xDif > zDif)
+        {
+            if (x > vv.x)
+            {
+                xOffset = dif;
+            }
+            else
+            {
+                xOffset = -dif;
+            }
+        }
+        else if (yDif > xDif && yDif > zDif)
+        {
+            if (y > vv.y)
+            {
+                yOffset = dif;
+            }
+            else
+            {
+                yOffset = -dif;
+            }
+        }
+        else
+        {
+            if (z > vv.z)
+            {
+                zOffset = dif;
+            }
+            else
+            {
+                zOffset = -dif;
+            }
+        }
+
+        x = MathUtils.round(x + xOffset);
+        y = MathUtils.round(y + yOffset);
+        z = MathUtils.round(z + zOffset);
 
         boolean foundChunk = false;
         for (int i = 0; i < chunks2.size; i++) {
 
-            if (x > chunks2.get(i).position.x - (Constants.chunkSize / 2) &&
+            Gdx.app.log("PART 2", "searching chunk " + chunks2.get(i).position.toString() );
+
+            if (x >= chunks2.get(i).position.x - (Constants.chunkSize / 2) &&
                     x < chunks2.get(i).position.x + (Constants.chunkSize / 2) &&
-                    y > chunks2.get(i).position.y - Constants.chunkSize &&
-                    y < chunks2.get(i).position.y  &&
-                    z > chunks2.get(i).position.z - (Constants.chunkSize / 2) &&
+                    y >= chunks2.get(i).position.y - (Constants.chunkSize / 2) &&
+                    y < chunks2.get(i).position.y + (Constants.chunkSize / 2) &&
+                    z >= chunks2.get(i).position.z - (Constants.chunkSize / 2) &&
                     z < chunks2.get(i).position.z + (Constants.chunkSize / 2) )
             {
-                Gdx.app.log("PART 2", "Found chunk");
+                Gdx.app.log("PART 2", "Found chunk " + chunks2.get(i).position.toString() + " " + new Vector3(x,y,z)  );
                 foundChunk = true;
 
-                chunks2.get(i).addMesh(new Vector3(MathUtils.round(x), MathUtils.round(y), MathUtils.round(z)), cubes);
+                // take away the plus 1
+//                x = x - xOffset;
+//                y = y - yOffset;
+//                z = z - zOffset;
+
+                chunks2.get(i).addMesh(new Vector3(x, y, z), cubes);
+                break;
             }
         }
 
+        // create the new chunk
         if (foundChunk == false)
         {
-            Vector3 v = new Vector3((((int) x / Constants.chunkSize)) * Constants.chunkSize, ((int) y / Constants.chunkSize) + Constants.chunkSize, (((int) z / Constants.chunkSize)) * Constants.chunkSize);
+            int yy, xx, zz;
+
+            if (x > 0)
+            {
+                xx = (int) ((x + ( Constants.chunkSize /2)) / Constants.chunkSize) * Constants.chunkSize;
+            }
+            else
+            {
+                xx = (int) ((x - ( Constants.chunkSize /2)) / Constants.chunkSize) * Constants.chunkSize;
+            }
+
+            if (y > 0)
+            {
+                yy = (int) ((y + ( Constants.chunkSize /2)) / Constants.chunkSize) * Constants.chunkSize;
+            }
+            else
+            {
+                yy = (int) ((y - ( Constants.chunkSize /2)) / Constants.chunkSize) * Constants.chunkSize;
+            }
+
+            if (z > 0)
+            {
+                zz =  (int) ((z + ( Constants.chunkSize /2)) / Constants.chunkSize) * Constants.chunkSize;
+            }
+            else
+            {
+                zz =  (int) ((z - ( Constants.chunkSize /2)) / Constants.chunkSize) * Constants.chunkSize;
+            }
+
+            Vector3 v = new Vector3(xx, yy, zz);
+            Gdx.app.log("PART 2", "DID NOT FIND chunk " + v.toString() + " " + new Vector3(x,y,z));
             MeshBuilder m = new MeshBuilder(v);
+
+//            x = x - xOffset;
+//            y = y - yOffset;
+//            z = z - zOffset;
 
             m.addMesh(new Vector3(MathUtils.round(x), MathUtils.round(y), MathUtils.round(z)), cubes);
             // create empty chunk
             chunks2.add(m);
-
             // add item
         }
     }
@@ -353,6 +489,7 @@ public class GameRenderScreen  implements Screen {
         Vector3 pos = new Vector3(camera.position);
         Vector3 v = new Vector3();
         Matrix4 transfor = new Matrix4();
+        Vector3 center = new Vector3();
 
         for (int i = 0; i < chunks2.size; i++) {
 
@@ -376,14 +513,17 @@ public class GameRenderScreen  implements Screen {
                     //bounds.mul(transfor);
 
                     float dist2 = ray.origin.dst2(pos);
+                    //Gdx.app.log("MyTag 2","DIS " + dist2 );
+
                     if (distance >= 0f && dist2 > distance || dist2 > Constants.rayDistance) continue;
 
                     if (Intersector.intersectRayBounds(ray, bounds, v))
                     {
-                        //Gdx.app.log("MyTag 2","BLLA");
+                        Gdx.app.log("MyTag 2", "WE HIT " + v.toString() + " " + transfor.getTranslation(pos));
                         chunkIndex = i;
                         meshIndex = a;
                         distance = dist2;
+                        center = new Vector3(transfor.getTranslation(pos));
                     }
 
                     m.dispose();
@@ -393,12 +533,18 @@ public class GameRenderScreen  implements Screen {
 
         if (chunkIndex > -1)
         {
-            Gdx.app.log("MyTag 2", "x " + v.x + " y " + v.y + " z " + v.z);
-            Gdx.app.log("MyTag 2", "x " + MathUtils.round(v.x) + " y " + MathUtils.round(v.y) + " z " + MathUtils.round(v.z));
+            Gdx.app.log("MyTag 2","DIS LAST " + distance );
+            Gdx.app.log("MyTag 2", "x " + v.x + " y " + v.y + " z " + v.z + " " + center);
+            //Gdx.app.log("MyTag 2", "x " + MathUtils.round(v.x) + " y " + MathUtils.round(v.y) + " z " + MathUtils.round(v.z));
 
-            //removeObject(chunkIndex, meshIndex);
-
-            addObject(v.x,v.y,v.z);
+            if (fps.isAdding == true)
+            {
+                addObject(v.x, v.y, v.z, center);
+            }
+            else
+            {
+                removeObject(chunkIndex, meshIndex);
+            }
 
             String s = chunks2.get(0).chunkToString();
             Gdx.app.log("CHUNK",s);
@@ -485,130 +631,6 @@ public class GameRenderScreen  implements Screen {
             chunks2.get(i).checkDirty();
         }
 
-//        markAddChunk(x, z );
-//
-//        if (direction.z < 0)
-//        {
-//            Gdx.app.log("MyTag 2", "Fire A");
-//            if (direction.x < -0.5)
-//            {
-//                Gdx.app.log("MyTag 2", "Fire 1");
-//
-//                markAddChunk(x - 2, z);
-//                markAddChunk(x - 2, z - 1);
-//                markAddChunk(x - 2, z + 1);
-//                markAddChunk(x - 2, z - 2);
-//                markAddChunk(x - 2, z + 2);
-//
-//                markAddChunk(x - 1, z);
-//                markAddChunk(x - 1, z - 1);
-//                markAddChunk(x - 1, z + 1);
-//                markAddChunk(x - 1, z - 2);
-//                markAddChunk(x - 1, z + 2);
-//
-//                markAddChunk(x, z - 1);
-//                markAddChunk(x , z + 1);
-//            }
-//            else if (direction.x > 0.5)
-//            {
-//
-//                Gdx.app.log("MyTag 2", "Fire 2");
-//
-//                markAddChunk(x + 2, z);
-//                markAddChunk(x + 2, z - 1);
-//                markAddChunk(x + 2, z + 1);
-//                markAddChunk(x + 2, z - 2);
-//                markAddChunk(x + 2, z + 2);
-//
-//                markAddChunk(x + 1, z);
-//                markAddChunk(x + 1, z - 1);
-//                markAddChunk(x + 1, z + 1);
-//                markAddChunk(x + 1, z - 2);
-//                markAddChunk(x + 1, z + 2);
-//
-//                markAddChunk(x, z - 1);
-//                markAddChunk(x , z + 1);
-//            }
-//            else
-//            {
-//                Gdx.app.log("MyTag 2", "Fire 3");
-//
-//                markAddChunk(x, z - 2);
-//                markAddChunk(x - 1, z - 2);
-//                markAddChunk(x + 1, z - 2);
-//                markAddChunk(x - 2, z - 2);
-//                markAddChunk(x + 2, z - 2);
-//
-//                markAddChunk(x, z - 1);
-//                markAddChunk(x - 1, z - 1);
-//                markAddChunk(x + 1, z - 1);
-//                markAddChunk(x - 2, z - 1);
-//                markAddChunk(x + 2, z - 1);
-//
-//                markAddChunk(x - 1, z );
-//                markAddChunk(x + 1, z );
-//            }
-//        }
-//        else
-//        {
-//            Gdx.app.log("MyTag 2", "Fire B");
-//
-//            if (direction.x < -0.5)
-//            {
-//                Gdx.app.log("MyTag 2", "Fire 2");
-//                markAddChunk(x - 2, z);
-//                markAddChunk(x - 2, z - 1);
-//                markAddChunk(x - 2, z + 1);
-//                markAddChunk(x - 2, z - 2);
-//                markAddChunk(x - 2, z + 2);
-//
-//                markAddChunk(x - 1, z);
-//                markAddChunk(x - 1, z - 1);
-//                markAddChunk(x - 1, z + 1);
-//                markAddChunk(x - 1, z - 2);
-//                markAddChunk(x - 1, z + 2);
-//
-//                markAddChunk(x, z - 1);
-//                markAddChunk(x , z + 1);
-//            }
-//            else if (direction.x > 0.5)
-//            {
-//                Gdx.app.log("MyTag 2", "Fire 3");
-//                markAddChunk(x + 2,z);
-//                markAddChunk(x + 2, z - 1);
-//                markAddChunk(x + 2, z + 1);
-//                markAddChunk(x + 2, z - 2);
-//                markAddChunk(x + 2, z + 2);
-//
-//                markAddChunk(x + 1,z);
-//                markAddChunk(x + 1, z - 1);
-//                markAddChunk(x + 1, z + 1);
-//                markAddChunk(x + 1, z - 2);
-//                markAddChunk(x + 1, z + 2);
-//
-//                markAddChunk(x, z - 1);
-//                markAddChunk(x , z + 1);
-//            }
-//            else
-//            {
-//                Gdx.app.log("MyTag 2", "Fire 4");
-//                markAddChunk(x,z + 2);
-//                markAddChunk(x - 1, z + 2);
-//                markAddChunk(x + 1, z + 2);
-//                markAddChunk(x - 2, z + 2);
-//                markAddChunk(x + 2, z + 2);
-//
-//                markAddChunk(x,z + 1);
-//                markAddChunk(x - 1, z + 1);
-//                markAddChunk(x + 1, z + 1);
-//                markAddChunk(x - 2, z + 1);
-//                markAddChunk(x + 2, z + 1);
-//
-//                markAddChunk(x - 1, z );
-//                markAddChunk(x + 1, z );
-//            }
-//        }
-
         int size = 5;
         for (int xx = 0 ; xx < size ; xx++)
         {
@@ -622,10 +644,10 @@ public class GameRenderScreen  implements Screen {
 
             if (chunks2.get(i).needed == false)
             {
-                Gdx.app.log("ERROR", "DELETING " + chunks2.get(i).position);
-                MeshBuilder m = chunks2.get(i);
+                Gdx.app.log("ERROR", "DELETING " + chunks2.get(i).position + " " + chunks2.size);
+
+                MeshBuilder m = chunks2.removeIndex(i);
                 m.dispose();
-                chunks2.removeIndex(i);
             }
         }
     }

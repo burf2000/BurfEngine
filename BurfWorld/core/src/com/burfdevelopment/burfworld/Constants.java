@@ -9,13 +9,16 @@ public class Constants {
     public static int renderCount;
     public static int cubeCount;
 
-    public static int rayDistance = 80;
+    public static int rayDistance = 40;
 
     public static float cubeCollisonSize = 0.8f;
     public static float cubeSize = 1.0f; //1
 
-    public static float maxJump = 2;
+    public static float jumpRate = 4;
+    public static float maxJump = 1.5f;
     public static float headHeight = 2.0f;
+
+
 
     public enum BrickState {
         DELETED(-1) , HIDDEN(0) , SHOW(1);

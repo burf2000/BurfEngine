@@ -20,6 +20,7 @@ public class ControlsController extends FirstPersonCameraController {
     private TextButton backwardButton;
     private TextButton leftButton;
     private TextButton rightButton;
+    public boolean isAdding = true;
 
     public static int width() { return Gdx.graphics.getWidth(); }
     public static int height() { return Gdx.graphics.getHeight(); }
@@ -64,9 +65,14 @@ public class ControlsController extends FirstPersonCameraController {
     @Override
     public boolean keyDown (int keycode) {
 
-        if (keycode == Input.Keys.SPACE)
+        if (keycode == Input.Keys.SPACE  && gameRenderScreen.isJump == false && gameRenderScreen.jumping == 0.0f)
         {
             gameRenderScreen.isJump = true;
+        }
+
+        if (keycode == Input.Keys.ENTER)
+        {
+            isAdding = !isAdding;
         }
 
         return super.keyDown(keycode);

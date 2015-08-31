@@ -61,7 +61,7 @@ public class MeshBuilder {
 
         dirty = true;
 
-        database.updateChunk(position.x,position.y,position.z,chunkToString());
+        database.updateChunk(position.x, position.y, position.z, chunkToString());
     }
 
 //    static {
@@ -119,17 +119,20 @@ public class MeshBuilder {
         mesh = MeshBuilder.mergeMeshes(meshes, transformations);
         finished = true;
 
-        Gdx.app.log("PART 3", " " + (int)pos.x + (Constants.chunkSize / 2) + " " + (int)pos.y + " " + (int)pos.z + (Constants.chunkSize / 2) );
-
         int x,y,z;
-        x = (int) pos.x % 16;
-        y = (int) pos.y % 16;
-        z = (int) pos.z % 16;
+        x = (int)(pos.x - position.x) + (Constants.chunkSize / 2);//pos.x % 16;
+        y = (int)(pos.y - position.y) + (Constants.chunkSize / 2); //pos.y % 16;
+        z = (int)(pos.z - position.z) + (Constants.chunkSize / 2); //pos.z % 16;
 
-        chunk[x + (Constants.chunkSize / 2) ][y][z + (Constants.chunkSize / 2)] = Constants.BrickState.SHOW.value + r;
+        if (x > 15 || x < 0 ||  y > 15 || y < 0 ||  z > 15 || z < 0)
+        {
+            Gdx.app.log("PART 3", " " + (int)position.x + " " + (int)position.y + " " + (int)position.z );
+            Gdx.app.log("PART 3", " " + (int)pos.x + " " + (int)pos.y + " " + (int)pos.z );
+            //Gdx.app.log("PART 3", " " + (int)pos.x + (Constants.chunkSize / 2) + " " + (int)pos.y + " " + (int)pos.z + (Constants.chunkSize / 2) );
+            Gdx.app.log("PART 3", " " + x + " " + y +" " + z );
+        }
 
-        String s = chunkToString();
-
+        chunk[x][y][z] = Constants.BrickState.SHOW.value + r;
         database.updateChunk(position.x,position.y,position.z,chunkToString());
     }
 
@@ -149,7 +152,7 @@ public class MeshBuilder {
 
                     if (textureValue > 0)
                     {
-                        model = new ModelInstance(cubes.get(chunk[x][y][z] - 1), (position.x + x - (Constants.chunkSize / 2)) * Constants.cubeSize, (position.y + y - (Constants.chunkSize / 2)) * Constants.cubeSize, (position.z + z - (Constants.chunkSize / 2)) * Constants.cubeSize);
+                        model = new ModelInstance(cubes.get(chunk[x][y][z] - Constants.BrickState.SHOW.value), (position.x + x - (Constants.chunkSize / 2)) * Constants.cubeSize, (position.y + y - (Constants.chunkSize / 2)) * Constants.cubeSize, (position.z + z - (Constants.chunkSize / 2)) * Constants.cubeSize);
                         meshes.addAll(model.model.meshes);
                         transformations.add(model.transform);
                     }
@@ -263,7 +266,7 @@ public class MeshBuilder {
     {
         // todo causes a crash
         deleting = true;
-        //mesh.dispose();
+        mesh.dispose();
     }
 
     public static Mesh mergeMeshes(Array<Mesh> meshes, Array<Matrix4> transformations)
