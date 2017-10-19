@@ -4,7 +4,7 @@ sourceCompatibility = '1.7'
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
 ext {
-	mainClassName = "com.burfdevelopment.burfworld.IOSLauncher"
+    mainClassName = "com.burfdevelopment.hackworld.IOSLauncher"
 }
 
 launchIPhoneSimulator.dependsOn build
@@ -12,6 +12,9 @@ launchIPadSimulator.dependsOn build
 launchIOSDevice.dependsOn build
 createIPA.dependsOn build
 
+robovm {
+    archs = "thumbv7:arm64"
+}
 
 eclipse.project {
     name = appName + "-ios"

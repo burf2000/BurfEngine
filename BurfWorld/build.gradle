@@ -6,8 +6,8 @@ buildscript {
     }
     dependencies {
         classpath 'de.richsource.gradle.plugins:gwt-gradle-plugin:0.6'
-        classpath 'com.android.tools.build:gradle:1.2.3'
-        classpath 'org.robovm:robovm-gradle-plugin:1.5.0'
+        classpath 'com.android.tools.build:gradle:2.2.0'
+        classpath 'com.mobidevelop.robovm:robovm-gradle-plugin:2.3.3-SNAPSHOT'
     }
 }
 
@@ -18,11 +18,11 @@ allprojects {
     version = '1.0'
     ext {
         appName = 'BurfWorld'
-        gdxVersion = '1.6.4'
-        roboVMVersion = '1.5.0'
+        gdxVersion = '1.9.6'
+        roboVMVersion = '2.3.3-SNAPSHOT'
         box2DLightsVersion = '1.4'
-        ashleyVersion = '1.4.0'
-        aiVersion = '1.5.0'
+        ashleyVersion = '1.7.0'
+        aiVersion = '1.8.0'
     }
 
     repositories {
@@ -75,35 +75,18 @@ project(":ios") {
 
     dependencies {
         compile project(":core")
-        compile "org.robovm:robovm-rt:$roboVMVersion"
-        compile "org.robovm:robovm-cocoatouch:$roboVMVersion"
+        compile "com.mobidevelop.robovm:robovm-rt:$roboVMVersion"
+        compile "com.mobidevelop.robovm:robovm-cocoatouch:$roboVMVersion"
         compile "com.badlogicgames.gdx:gdx-backend-robovm:$gdxVersion"
         compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-ios"
-        compile fileTree(dir: 'libs', include: ['*.jar'])
-        //natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-ios"
-
+        //compile "com.badlogicgames.gdx:gdx-bullet-platform:$gdxVersion:natives-ios"
+        compile "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-ios"
 
     }
 
     robovm {
         iosSignIdentity = "iPhone Developer: Simon Burfield (2AP69U284T)"
         iosProvisioningProfile = "iOSTeam Provisioning Profile: *"
-    }
-}
-
-project(":html") {
-    apply plugin: "gwt"
-    apply plugin: "war"
-
-
-    dependencies {
-        compile project(":core")
-        compile "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion"
-        compile "com.badlogicgames.gdx:gdx:$gdxVersion:sources"
-        compile "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion:sources"
-        compile "com.badlogicgames.gdx:gdx-controllers:$gdxVersion:sources"
-        compile "com.badlogicgames.gdx:gdx-controllers-gwt:$gdxVersion"
-        compile "com.badlogicgames.gdx:gdx-controllers-gwt:$gdxVersion:sources"
     }
 }
 
