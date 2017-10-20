@@ -21,10 +21,10 @@ public class MainMenuScreen  implements Screen {
     private Stage stage = new Stage();
     private Table table = new Table();
 
-    private TextButton buttonPlay = new TextButton("Play", Gui.getSkin());
-    private TextButton buttonExit = new TextButton("Exit", Gui.getSkin());
-    private TextArea username = new TextArea("", Gui.getSkin());
-    private Label title = new Label("Burf World",Gui.getSkin());
+    private TextButton buttonPlay = new TextButton("Play", Gui.skin);
+    private TextButton buttonExit = new TextButton("Exit", Gui.skin);
+    private TextArea username = new TextArea("", Gui.skin);
+    private Label title = new Label("Burf World",Gui.skin);
 
     public static int width() { return Gdx.graphics.getWidth(); }
     public static int height() { return Gdx.graphics.getHeight(); }

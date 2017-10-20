@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.PixmapPacker;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Environment;
@@ -13,7 +12,6 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
-import com.badlogic.gdx.graphics.g3d.model.Animation;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
@@ -29,10 +27,9 @@ import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.async.AsyncExecutor;
 import com.badlogic.gdx.utils.async.AsyncTask;
 import com.burfdevelopment.burfworld.Constants;
-import com.burfdevelopment.burfworld.Database.DatabaseHelper;
 import com.burfdevelopment.burfworld.Entity.MeshBuilder;
 import com.burfdevelopment.burfworld.Skybox;
-import com.burfdevelopment.burfworld.Utils.ControlsController;
+import com.burfdevelopment.burfworld.Utils.InputController;
 
 
 /**
@@ -43,7 +40,7 @@ public class GameRenderScreen  implements Screen {
     private Stage stage = new Stage();
     private BitmapFont font;
     private PerspectiveCamera camera;
-    private ControlsController fps;
+    private InputController fps;
     private Environment lights;
 
     public static int width() { return Gdx.graphics.getWidth(); }
@@ -89,7 +86,7 @@ public class GameRenderScreen  implements Screen {
         camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(),Gdx.graphics.getHeight());
         camera.near = 0.1f; // 0.5 //todo find out what this is again
         camera.far = 1000;
-        fps = new ControlsController(camera , this, stage);
+        fps = new InputController(camera , this, stage);
 
         setupChunks();
 

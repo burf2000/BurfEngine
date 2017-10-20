@@ -2,25 +2,24 @@ package com.burfdevelopment.burfworld.Activity;
 
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Game;
-import com.burfdevelopment.burfworld.Database.DatabaseHelper;
 import com.burfdevelopment.burfworld.Networking.Parse;
 import com.burfdevelopment.burfworld.Screens.MainMenuScreen;
 import com.burfdevelopment.burfworld.Skybox;
 
 public class GameActivity extends Game implements ApplicationListener {
 
-	MainMenuScreen mainMenu;
-	
-	@Override
-	public void create () {
+    MainMenuScreen mainMenu;
 
-		Skybox.init();
+    @Override
+    public void create() {
 
-		mainMenu = new MainMenuScreen();
-		setScreen(mainMenu);
+        Skybox.init();
 
-		Parse p = new Parse();
-		p.add_net_score();
+        mainMenu = new MainMenuScreen();
+        setScreen(mainMenu);
+
+        Parse p = new Parse();
+        p.add_net_score();
 
 
 //		String javaLibPath = System.getProperty("java.library.path");
@@ -34,14 +33,14 @@ public class GameActivity extends Game implements ApplicationListener {
 //			}
 //		}
 
-		//DatabaseHelper d = new DatabaseHelper();
-		//SQLHelper h = new SQLHelper("simon");
+        //DatabaseHelper d = new DatabaseHelper();
+        //SQLHelper h = new SQLHelper("simon");
 
 
-	}
+    }
 
-	@Override
-	public void render () {
-		super.render();
-	}
+    @Override
+    public void render() {
+        super.render();
+    }
 }
