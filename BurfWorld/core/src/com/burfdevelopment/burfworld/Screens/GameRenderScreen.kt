@@ -48,7 +48,8 @@ class GameRenderScreen : Screen {
     private var chunks2: Array<MeshBuilder>? = null
     private val oldPosition = Vector3()
 
-    private var shaderProgram: ShaderProgram? = null
+    private lateinit var shaderProgram: ShaderProgram
+
     private var texture: Texture? = null
     private var modelBuilder: ModelBuilder? = null
 
@@ -508,6 +509,7 @@ class GameRenderScreen : Screen {
     }
 
     fun compileShaderTexture() {
+
         val vertexShader = Gdx.files.internal("shaders/vert.glsl").readString()
         val fragmentShader = Gdx.files.internal("shaders/frag.glsl").readString()
         shaderProgram = ShaderProgram(vertexShader, fragmentShader)
@@ -620,4 +622,3 @@ class GameRenderScreen : Screen {
     }
 
 }
-

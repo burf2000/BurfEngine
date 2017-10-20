@@ -23,7 +23,6 @@ public class MeshBuilder constructor(position: Vector3) {
     var position: Vector3 = position
     @JvmField
     var needed = true
-
     @JvmField
     var deleting = false
     private var mesh: Mesh? = null
@@ -35,7 +34,10 @@ public class MeshBuilder constructor(position: Vector3) {
     var transformations = com.badlogic.gdx.utils.Array<Matrix4>()
 
     private var dirty = false
-    @JvmField var database = DatabaseHelper()
+
+    companion object {
+        @JvmField var  database = DatabaseHelper()
+    }
 
     init {
         database.addChunk(position.x, position.y, position.z, chunkToString())
