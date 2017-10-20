@@ -1,36 +1,29 @@
-package com.burfdevelopment.burfworld;
+package com.burfdevelopment.burfworld
 
 /**
- * Created by burfies1 on 07/08/15.
+ * Created by burfies1 on 20/10/2017.
  */
-public class Constants {
+object Constants {
 
-    public static final int chunkSize = 16;
-    public static int renderCount;
-    public static int cubeCount;
+    @JvmField val chunkSize = 16
+    @JvmField val renderCount: Int = 0
+    @JvmField val cubeCount: Int = 0
 
-    public static int rayDistance = 40;
+    @JvmField val rayDistance = 40
 
-    public static float cubeCollisonSize = 0.8f;
-    public static float cubeSize = 1.0f; //1
+    @JvmField val cubeCollisonSize = 0.8f
+    @JvmField val cubeSize = 1.0f //1
 
-    public static float jumpRate = 4;
-    public static float maxJump = 1.5f;
-    public static float headHeight = 2.0f;
+    @JvmField val jumpRate = 4f
+    @JvmField val maxJump = 1.5f
+    @JvmField val headHeight = 2.0f
 
 
-
-    public enum BrickState {
-        DELETED(-1) , HIDDEN(0) , SHOW(1);
-
-        public int value;
-
-        private BrickState(int value) {
-            this.value = value;
-        }
+    enum class BrickState private constructor(var value: Int) {
+        DELETED(-1), HIDDEN(0), SHOW(1)
     }
 
-    public enum TextureName {
+    enum class TextureName {
         SMALL_GREY_BRICKS,
         LARGE_GREY_BRICKS,
         SAMLL_RED_BRICKS,
