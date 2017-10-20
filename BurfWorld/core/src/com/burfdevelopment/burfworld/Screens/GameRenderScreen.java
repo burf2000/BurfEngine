@@ -585,8 +585,8 @@ public class GameRenderScreen  implements Screen {
 
     public void compileShaderTexture()
     {
-        String vertexShader = Gdx.files.internal("vert.glsl").readString();
-        String  fragmentShader = Gdx.files.internal("frag.glsl").readString();
+        String vertexShader = Gdx.files.internal("shaders/vert.glsl").readString();
+        String  fragmentShader = Gdx.files.internal("shaders/frag.glsl").readString();
         shaderProgram = new ShaderProgram(vertexShader,fragmentShader);
 
         if (!shaderProgram.isCompiled()) {
@@ -595,7 +595,7 @@ public class GameRenderScreen  implements Screen {
             throw new GdxRuntimeException("Couldn't compile shader: " + shaderProgram.getLog());
         }
 
-        texture = new Texture("texturemap.png");
+        texture = new Texture("textures/texturemap.png");
         regions = TextureRegion.split(texture, 64, 64);
 
         //texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
