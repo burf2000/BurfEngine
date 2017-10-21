@@ -1,29 +1,11 @@
-Splash screen
-
-non textured boxes
-spheres
-cyclinders
-pyamid
-
-jump button for mobile
-
-check MOVEMENT IS TIME BASED
-
-ADD MUSIC
 
 you can not remove a cube you have just added
 
-Sky jumps about (collison code )
-
 you can fall between chunks
-
-Jump is a bit slow
 
 chunks dont appear sometimes
 
 make buttons bigger
-
-review touch code to make sure you can move and look
 
 textures seem to be rotated?
 
@@ -35,15 +17,5 @@ build landscape
 texture per side
 grass top layer
 
-look up entity framework
-
-update to kotlan
-
-look at VR
-
-Look at TTS, Speech to text and native frameworks
-https://github.com/TrebuhD/SpeechGDX
 
 
-
-https://github.com/libgdx/libgdx/wiki/Interfacing-with-platform-specific-code

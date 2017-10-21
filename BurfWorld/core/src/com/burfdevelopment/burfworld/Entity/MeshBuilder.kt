@@ -18,9 +18,9 @@ import com.burfdevelopment.burfworld.Screens.GameRenderHelper
  */
 
 //todo save chuncks
-public class MeshBuilder constructor(position: Vector3) {
+public class MeshBuilder constructor() {
     @JvmField
-    var position: Vector3 = position
+    var position: Vector3 = Vector3(0f, 0f, 0f)
     @JvmField
     var needed = true
     @JvmField
@@ -36,24 +36,29 @@ public class MeshBuilder constructor(position: Vector3) {
     private var dirty = false
 
     companion object {
-        @JvmField var  database = DatabaseHelper()
+        @JvmField
+        var database = DatabaseHelper()
     }
 
-    init {
+    constructor(position: Vector3) : this() {
+        this.position = position
         database.addChunk(position.x, position.y, position.z, chunkToString())
     }
 
-    constructor(position: Vector3, cubes: com.badlogic.gdx.utils.Array<Model>) : this(position) {
 
+    constructor(position: Vector3, cubes: com.badlogic.gdx.utils.Array<Model>) : this() {
+
+        this.position = position
         val data = database.getChunk(position.x, position.y, position.z)
 
         if (data == null) {
-            Gdx.app.log("NOT FOUND", "NOT FOUND")
+            //Gdx.app.log("NOT FOUND", "NOT FOUND")
             createMeshes(cubes)
         } else {
-            Gdx.app.log("FOUND", "FOUND")
+            //Gdx.app.log("FOUND", "FOUND")
 
             val s = data.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+            // create a mesh based on data in s
             populateMeshes(cubes, s)
         }
 
@@ -71,8 +76,8 @@ public class MeshBuilder constructor(position: Vector3) {
 
         val v = Vector3(transformations.get(index).`val`[12] - position.x, transformations.get(index).`val`[13] - position.y, transformations.get(index).`val`[14] - position.z)
 
-        Gdx.app.log("PART 2", " " + v.x + " " + v.y + " " + v.z)
-        Gdx.app.log("PART 2", " " + (v.x + Constants.chunkSize / 2).toInt() + " " + (v.y + Constants.chunkSize / 2).toInt() + " " + (v.z + Constants.chunkSize / 2).toInt())
+        //Gdx.app.log("PART 2", " " + v.x + " " + v.y + " " + v.z)
+        //Gdx.app.log("PART 2", " " + (v.x + Constants.chunkSize / 2).toInt() + " " + (v.y + Constants.chunkSize / 2).toInt() + " " + (v.z + Constants.chunkSize / 2).toInt())
 
         val indexX: Int
         val indexY: Int
@@ -198,6 +203,7 @@ public class MeshBuilder constructor(position: Vector3) {
         }
     }
 
+    // Converts values of chunk to a string
     fun chunkToString(): String {
 
         var s = String()
@@ -209,6 +215,7 @@ public class MeshBuilder constructor(position: Vector3) {
                 for (z in 0 until Constants.chunkSize) {
 
                     s += GameRenderHelper.chunk[x][y][z].toString() + ","
+                    //s += "1,"
                 }
             }
         }

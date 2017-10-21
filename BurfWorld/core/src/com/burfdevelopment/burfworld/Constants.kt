@@ -14,10 +14,11 @@ object Constants {
     @JvmField val cubeCollisonSize = 0.8f
     @JvmField val cubeSize = 1.0f //1
 
-    @JvmField val jumpRate = 4f
+    @JvmField val jumpRate = 5f
     @JvmField val maxJump = 1.5f
     @JvmField val headHeight = 2.0f
 
+    @JvmField val chunkArea = 3
 
     enum class BrickState private constructor(var value: Int) {
         DELETED(-1), HIDDEN(0), SHOW(1)

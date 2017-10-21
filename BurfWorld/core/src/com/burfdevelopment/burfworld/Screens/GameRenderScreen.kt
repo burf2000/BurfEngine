@@ -37,9 +37,9 @@ class GameRenderScreen : Screen {
 
     private val stage = Stage()
     private var font: BitmapFont? = null
-    private var camera: PerspectiveCamera? = null
+    private var camera: PerspectiveCamera = PerspectiveCamera(67f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
     private var fps: InputController? = null
-    private var lights: Environment? = null
+    private var lights: Environment = Environment()
     private var accum = 0.0f
 
     private val spriteBatch = SpriteBatch()
@@ -71,26 +71,26 @@ class GameRenderScreen : Screen {
         compileShaderTexture()
         Skybox.createSkyBox()
 
-        camera = PerspectiveCamera(67f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
-        camera!!.near = 0.1f // 0.5 //todo find out what this is again
-        camera!!.far = 1000f
+        camera.near = 0.1f // 0.5 //todo find out what this is again
+        camera.far = 1000f
+        camera.position.set(0f,10f,0f)
+
         fps = InputController(camera!!, this, stage)
 
         setupChunks()
 
         //Light..
-        lights = Environment()
-        lights!!.set(ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f))
-        lights!!.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, 1f, -0.8f, -0.2f))
+        lights.set(ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f))
+        lights.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, 1f, -0.8f, -0.2f))
 
-
-        modelBuilder!!.begin()
-        val mpb = modelBuilder!!.part("box", GL20.GL_TRIANGLES, (VertexAttributes.Usage.Position or VertexAttributes.Usage.Normal or VertexAttributes.Usage.TextureCoordinates).toLong(), Material(ColorAttribute.createDiffuse(Color.BLUE)))
-        mpb.setUVRange(GameRenderHelper.regions!![1][1])
-        mpb.box(0f, 9f, 0f, 0.5f, 0.5f, 0.5f)
-        mpb.box(0f, 8f, 0f, 0.5f, 0.5f, 0.5f)
-
-        person = modelBuilder!!.end()
+// todo put back in
+//        modelBuilder!!.begin()
+//        val mpb = modelBuilder!!.part("box", GL20.GL_TRIANGLES, (VertexAttributes.Usage.Position or VertexAttributes.Usage.Normal or VertexAttributes.Usage.TextureCoordinates).toLong(), Material(ColorAttribute.createDiffuse(Color.BLUE)))
+//        mpb.setUVRange(GameRenderHelper.regions!![1][1])
+//        mpb.box(0f, 9f, 0f, 0.5f, 0.5f, 0.5f)
+//        mpb.box(0f, 8f, 0f, 0.5f, 0.5f, 0.5f)
+//
+//        person = modelBuilder!!.end()
 
 
         //chunks2.add(new MeshBuilder(new Vector3((0 * Constants.chunkSize), Constants.chunkSize, (-1 * Constants.chunkSize)), cubes));
@@ -99,15 +99,19 @@ class GameRenderScreen : Screen {
     fun setupChunks() {
         chunks2 = Array()
         createChunk(0f, 0f) //, camera.direction
-        task = AsyncTask<Void> {
-            createChunk((camera!!.position.x.toInt() / Constants.chunkSize).toFloat(), (camera!!.position.z.toInt() / Constants.chunkSize).toFloat()) //, camera.direction
 
-            null
-        }
+        // todo I have disabled the mega chunks
+        // task so does not get fired off
+//        task = AsyncTask<Void> {
+//            Gdx.app.log("DEBUG", "would be firing of createChunk");
+//            createChunk((camera.position.x.toInt() / Constants.chunkSize).toFloat(), (camera.position.z.toInt() / Constants.chunkSize).toFloat()) //, camera.direction
+//
+//            null
+//        }
     }
 
 
-    fun update() {
+    private fun update() {
 
         oldPosition.set(camera!!.position)
         fps!!.updateControls()
@@ -141,7 +145,7 @@ class GameRenderScreen : Screen {
         //
     }
 
-    fun checkCollison() {
+    private fun checkCollison() {
 
         var height = 0f
         var collison = false
@@ -220,8 +224,9 @@ class GameRenderScreen : Screen {
         // fire off chunk builder
         {
             accum = 0.0f
-            //TODO fix
-            executor.submit(task)
+            //TODO fix task
+            //executor.submit(task)
+
             //createChunk((int) camera.position.x / 16, (int) camera.position.z / 16, camera.direction);
         }
 
@@ -255,7 +260,7 @@ class GameRenderScreen : Screen {
         }
 
         //person.getNode("box").translation(new Vector3(0f,2f,0f));
-        person!!.meshes.get(0).render(shaderProgram, GL20.GL_TRIANGLES)
+        //person!!.meshes.get(0).render(shaderProgram, GL20.GL_TRIANGLES)
 
         shaderProgram!!.end()
 
@@ -446,7 +451,7 @@ class GameRenderScreen : Screen {
                     //bounds.mul(transfor);
 
                     val dist2 = ray.origin.dst2(pos)
-                    //Gdx.app.log("MyTag 2","DIS " + dist2 );
+                    Gdx.app.log("MyTag 2","DIS " + dist2 );
 
                     if (distance >= 0f && dist2 > distance || dist2 > Constants.rayDistance) continue
 
@@ -466,7 +471,7 @@ class GameRenderScreen : Screen {
         if (chunkIndex > -1) {
             Gdx.app.log("MyTag 2", "DIS LAST " + distance)
             Gdx.app.log("MyTag 2", "x " + v.x + " y " + v.y + " z " + v.z + " " + center)
-            //Gdx.app.log("MyTag 2", "x " + MathUtils.round(v.x) + " y " + MathUtils.round(v.y) + " z " + MathUtils.round(v.z));
+            Gdx.app.log("MyTag 2", "x " + MathUtils.round(v.x) + " y " + MathUtils.round(v.y) + " z " + MathUtils.round(v.z));
 
             if (fps!!.isAdding == true) {
                 addObject(v.x, v.y, v.z, center)
@@ -486,7 +491,7 @@ class GameRenderScreen : Screen {
         for (i in 0 until chunks2!!.size) {
 
             if (chunks2!!.get(i).position.x == x * Constants.chunkSize && chunks2!!.get(i).position.z == z * Constants.chunkSize) {
-                //Gdx.app.log("ERROR", "Adding2 " + chunks2.get(i).position.y);
+                Gdx.app.log("ERROR", "FOUND " + chunks2!!.get(i).position.x.toString());
                 chunks2!!.get(i).needed = true
                 found = true
             }
@@ -494,7 +499,7 @@ class GameRenderScreen : Screen {
 
         if (found == false) {
             Gdx.app.log("ERROR", "Adding " + Vector3(x * Constants.chunkSize, 0f, z * Constants.chunkSize))
-            chunks2!!.add(MeshBuilder(Vector3(x * Constants.chunkSize, 0f, z * Constants.chunkSize), cubes))
+            chunks2!!.add(MeshBuilder(Vector3(x * Constants.chunkSize, 0.0f, z * Constants.chunkSize), cubes))
 
 
             val v = MeshBuilder.database.getHeightChunk(x * Constants.chunkSize, z * Constants.chunkSize)
@@ -557,9 +562,11 @@ class GameRenderScreen : Screen {
             chunks2!!.get(i).checkDirty()
         }
 
-        val size = 5
+        val size = Constants.chunkArea
         for (xx in 0 until size) {
             for (zz in 0 until size) {
+                Gdx.app.log("POSITION", "x ${x + xx - (size - 1) / 2} z ${z + zz - (size - 1) / 2}")
+
                 markAddChunk(x + xx - (size - 1) / 2, z + zz - (size - 1) / 2)
             }
         }
@@ -617,8 +624,8 @@ class GameRenderScreen : Screen {
 
         private val TICK = 30 / 60f //1 / 60
 
-        private val executor = AsyncExecutor(1)
-        private var task: AsyncTask<*>? = null
+        //private val executor = AsyncExecutor(1)
+        //private var task: AsyncTask<*>? = null
     }
 
 }

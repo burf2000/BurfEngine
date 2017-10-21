@@ -30,18 +30,23 @@ class InputController: FirstPersonCameraController {
 
         // create control
         if (Gdx.app.type == Application.ApplicationType.Android || Gdx.app.type == Application.ApplicationType.iOS) {
-            forwardButton.setBounds((width() - 140).toFloat(), 180f, 80f, 70f)
+
+            var width : Float = Gdx.graphics.width / 10f
+            var height : Float = Gdx.graphics.height / 10f
+
+            forwardButton.setBounds(50f + width , 100f + (height * 2), width, height)
             stage.addActor(forwardButton)
 
-            leftButton.setBounds((width() - 190).toFloat(), 100f, 80f, 70f)
+            leftButton.setBounds(50f, 50f + height, width, height)
             stage.addActor(leftButton)
 
-            rightButton.setBounds((width() - 90).toFloat(), 100f, 80f, 70f)
+            rightButton.setBounds(50f + (width * 2), 50f + height, width, height)
             stage.addActor(rightButton)
 
-            backwardButton.setBounds((width() - 140).toFloat(), 20f, 80f, 70f)
+            backwardButton.setBounds(50f + width , 10f, width, height)
             stage.addActor(backwardButton)
         }
+
 
         //Todo fix this as it stops touching working
         val multiplexer = InputMultiplexer()

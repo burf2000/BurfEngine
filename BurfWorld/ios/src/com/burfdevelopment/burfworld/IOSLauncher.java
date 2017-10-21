@@ -5,6 +5,7 @@ import org.robovm.apple.uikit.UIApplication;
 
 import com.badlogic.gdx.backends.iosrobovm.IOSApplication;
 import com.badlogic.gdx.backends.iosrobovm.IOSApplicationConfiguration;
+import com.burfdevelopment.burfworld.Activity.GameActivity;
 
 public class IOSLauncher extends IOSApplication.Delegate {
     @Override

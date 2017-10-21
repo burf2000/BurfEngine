@@ -20,8 +20,8 @@ class GameActivity : Game(), ApplicationListener {
         mainMenu = MainMenuScreen()
         setScreen(mainMenu)
 
-        val p = Parse()
-        p.add_net_score()
+//        val p = Parse()
+//        p.add_net_score()
 
 
         //		String javaLibPath = System.getProperty("java.library.path");

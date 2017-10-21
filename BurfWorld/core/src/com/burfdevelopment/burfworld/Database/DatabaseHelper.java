@@ -15,7 +15,6 @@ import com.badlogic.gdx.utils.Array;
  */
 
 
-
 public class DatabaseHelper {
 
     com.badlogic.gdx.sql.Database dbHandler;
@@ -41,13 +40,27 @@ public class DatabaseHelper {
             + ");";
 
 
+    public void addChunk(float x, float y, float z, String data) {
+
+        if (findChunk(x, y, z) == false) {
+            String sql = "INSERT INTO " + TABLE_CHUNKS + " " +
+                    "('" + COLUMN_CHUNK_DATA + "','" + COLUMN_CHUNK_X + "','" + COLUMN_CHUNK_Y + "', '" + COLUMN_CHUNK_Z + "') " + //,
+                    "VALUES ('" + data + "','" + x + "','" + y + "','" + z + "')";
+
+            try {
+                dbHandler
+                        .execSQL(sql);
+            } catch (SQLiteGdxException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
 
-    public void addChunk (float x, float y, float z, String data)
-    {
-        String sql =  "INSERT INTO " + TABLE_CHUNKS + " " +
-                "('"+ COLUMN_CHUNK_DATA +"','"+COLUMN_CHUNK_X+"','"+COLUMN_CHUNK_Y+"', '"+COLUMN_CHUNK_Z+"') " + //,
-                "VALUES ('" + data +"','"+ x +"','"+ y +"','"+ z +"')";
+    public void updateChunk(float x, float y, float z, String data) {
+        String sql = "UPDATE " + TABLE_CHUNKS + " " +
+                "SET '" + COLUMN_CHUNK_DATA + "' = '" + data + "' " +
+                "WHERE x = '" + x + "' AND y = '" + y + "' and z = '" + z + "'";
 
         try {
             dbHandler
@@ -57,47 +70,47 @@ public class DatabaseHelper {
         }
     }
 
-    public void updateChunk(float x, float y, float z, String data)
-    {
-        String sql =  "UPDATE " + TABLE_CHUNKS + " " +
-                "SET '"+ COLUMN_CHUNK_DATA +"' = '" + data + "' " +
-                "WHERE x = '" + x +"' AND y = '" + y +"' and z = '" + z + "'";
-
-        try {
-            dbHandler
-                    .execSQL(sql);
-        } catch (SQLiteGdxException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public Array<Vector3> getHeightChunk(float x, float z)
-    {
+    public Array<Vector3> getHeightChunk(float x, float z) {
         DatabaseCursor cursor = null;
         Array<Vector3> v = new Array<Vector3>();
 
         try {
-            cursor = dbHandler.rawQuery("SELECT * FROM " + TABLE_CHUNKS + " WHERE x = '" + x + "' and z = '" + z + "'" );
+            cursor = dbHandler.rawQuery("SELECT * FROM " + TABLE_CHUNKS + " WHERE x = '" + x + "' and z = '" + z + "'");
         } catch (SQLiteGdxException e) {
             e.printStackTrace();
         }
 
         while (cursor.next()) {
             Gdx.app.log("FromDb", String.valueOf(cursor.getString(0)) + " " + String.valueOf(cursor.getString(1)) + " " + String.valueOf(cursor.getString(3)) + " " + String.valueOf(cursor.getString(4)));
-            Vector3 r = new Vector3(Float.valueOf(cursor.getString(2)),Float.valueOf(cursor.getString(3)),Float.valueOf(cursor.getString(4)));
+            Vector3 r = new Vector3(Float.valueOf(cursor.getString(2)), Float.valueOf(cursor.getString(3)), Float.valueOf(cursor.getString(4)));
             v.add(r);
         }
 
         return v;
     }
 
-
-    public String getChunk(float x, float y, float z)
-    {
+    public boolean findChunk(float x, float y, float z) {
         DatabaseCursor cursor = null;
 
         try {
-            cursor = dbHandler.rawQuery("SELECT * FROM " + TABLE_CHUNKS + " WHERE x = '" + x +"' AND y = '" + y +"' and z = '" + z + "'" );
+            cursor = dbHandler.rawQuery("SELECT * FROM " + TABLE_CHUNKS + " WHERE x = '" + x + "' AND y = '" + y + "' and z = '" + z + "'");
+        } catch (SQLiteGdxException e) {
+            e.printStackTrace();
+        }
+
+
+        if (cursor.getCount() > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public String getChunk(float x, float y, float z) {
+        DatabaseCursor cursor = null;
+
+        try {
+            cursor = dbHandler.rawQuery("SELECT * FROM " + TABLE_CHUNKS + " WHERE x = '" + x + "' AND y = '" + y + "' and z = '" + z + "'");
         } catch (SQLiteGdxException e) {
             e.printStackTrace();
         }
@@ -106,19 +119,15 @@ public class DatabaseHelper {
 //            Gdx.app.log("FromDb", String.valueOf(cursor.getString(0)) + " "  + String.valueOf(cursor.getString(1)) + " "  + String.valueOf(cursor.getString(3)) + " "  + String.valueOf(cursor.getString(4)));
 //        }
 
-        if (cursor.getCount() > 0)
-        {
+        if (cursor.getCount() > 0) {
             cursor.next();
             return String.valueOf(cursor.getString(1));
-        }
-        else
-        {
+        } else {
             return null;
         }
     }
 
-    public void listAll()
-    {
+    public void listAll() {
         DatabaseCursor cursor = null;
 
         try {
@@ -126,13 +135,15 @@ public class DatabaseHelper {
         } catch (SQLiteGdxException e) {
             e.printStackTrace();
         }
-        while (cursor.next()) {
-            Gdx.app.log("FromDb", String.valueOf(cursor.getString(1)) + " "  + String.valueOf(cursor.getString(2)) + " "  + String.valueOf(cursor.getString(3)) + " "  + String.valueOf(cursor.getString(4)));
-        }
+
+        Gdx.app.log("FromDb", " " + cursor.getCount());
+
+//        while (cursor.next()) {
+//            Gdx.app.log("FromDb", String.valueOf(cursor.getString(1)) + " "  + String.valueOf(cursor.getString(2)) + " "  + String.valueOf(cursor.getString(3)) + " "  + String.valueOf(cursor.getString(4)));
+//        }
     }
 
-    public void closeDatabase()
-    {
+    public void closeDatabase() {
         try {
             dbHandler.closeDatabase();
         } catch (SQLiteGdxException e) {
@@ -158,10 +169,12 @@ public class DatabaseHelper {
 
         Gdx.app.log("DatabaseHelper", "created successfully");
 
-        //addChunk(5, 5, 5, "Simon");
+        //addChunk(0, 0, 0, "1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1");
         //getChunk(5, 5, 5);
         //updateChunk(3,"burf");
         //getChunk(5, 5, 5);
         //closeDatabase();
+
+        listAll();
     }
 }
