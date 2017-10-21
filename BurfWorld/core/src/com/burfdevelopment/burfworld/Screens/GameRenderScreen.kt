@@ -77,13 +77,15 @@ class GameRenderScreen : Screen {
 
         fps = InputController(camera!!, this, stage)
 
+        this.pause() // todo see if this pauses
         setupChunks()
+
 
         //Light..
         lights.set(ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f))
         lights.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, 1f, -0.8f, -0.2f))
 
-// todo put back in
+// todo put back in (random blocks)
 //        modelBuilder!!.begin()
 //        val mpb = modelBuilder!!.part("box", GL20.GL_TRIANGLES, (VertexAttributes.Usage.Position or VertexAttributes.Usage.Normal or VertexAttributes.Usage.TextureCoordinates).toLong(), Material(ColorAttribute.createDiffuse(Color.BLUE)))
 //        mpb.setUVRange(GameRenderHelper.regions!![1][1])
@@ -102,12 +104,14 @@ class GameRenderScreen : Screen {
 
         // todo I have disabled the mega chunks
         // task so does not get fired off
-//        task = AsyncTask<Void> {
-//            Gdx.app.log("DEBUG", "would be firing of createChunk");
-//            createChunk((camera.position.x.toInt() / Constants.chunkSize).toFloat(), (camera.position.z.toInt() / Constants.chunkSize).toFloat()) //, camera.direction
-//
-//            null
-//        }
+        task = AsyncTask<Void> {
+            Gdx.app.log("DEBUG", "would be firing of createChunk");
+            createChunk((camera.position.x.toInt() / Constants.chunkSize).toFloat(), (camera.position.z.toInt() / Constants.chunkSize).toFloat()) //, camera.direction
+
+            null
+        }
+
+        this.resume()
     }
 
 
@@ -624,8 +628,8 @@ class GameRenderScreen : Screen {
 
         private val TICK = 30 / 60f //1 / 60
 
-        //private val executor = AsyncExecutor(1)
-        //private var task: AsyncTask<*>? = null
+        private val executor = AsyncExecutor(1)
+        private var task: AsyncTask<*>? = null
     }
 
 }
