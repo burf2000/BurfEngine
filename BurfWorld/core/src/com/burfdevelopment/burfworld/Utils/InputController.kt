@@ -131,7 +131,8 @@ class InputController : FirstPersonCameraController {
     override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
         hasMoved = true
 
-        if (screenX > (Gdx.graphics.width / 2) && pointer == 1 && Gdx.app.type == Application.ApplicationType.Android || Gdx.app.type == Application.ApplicationType.iOS) {
+        var cutoff = width() * 0.75
+        if (screenX > cutoff && pointer == 1 && Gdx.app.type == Application.ApplicationType.Android || Gdx.app.type == Application.ApplicationType.iOS) {
 
             var deltaX = -Gdx.input.getDeltaX(1) * degreesPerPixel2
             var deltaY = -Gdx.input.getDeltaY(1) * degreesPerPixel2

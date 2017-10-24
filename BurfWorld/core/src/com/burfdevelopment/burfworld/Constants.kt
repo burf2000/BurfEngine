@@ -19,7 +19,8 @@ object Constants {
     @JvmField val headHeight = 2.0f
 
     // inital height
-    @JvmField val startingHeight = 25.0f
+    @JvmField val startingHeight = 15.0f
+
     @JvmField val chunkArea = 3
 
     enum class BrickState private constructor(var value: Int) {

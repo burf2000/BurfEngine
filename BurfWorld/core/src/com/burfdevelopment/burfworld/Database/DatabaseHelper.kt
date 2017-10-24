@@ -19,6 +19,9 @@ class DatabaseHelper {
     fun addChunk(x: Float, y: Float, z: Float, data: String) {
 
         if (findChunk(x, y, z) == false) {
+
+            Gdx.app.log("DATABASE", "Adding $x $y $z ")
+
             val sql = "INSERT INTO " + TABLE_CHUNKS + " " +
                     "('" + COLUMN_CHUNK_DATA + "','" + COLUMN_CHUNK_X + "','" + COLUMN_CHUNK_Y + "', '" + COLUMN_CHUNK_Z + "') " + //,
 
@@ -39,6 +42,8 @@ class DatabaseHelper {
         val sql = "UPDATE " + TABLE_CHUNKS + " " +
                 "SET '" + COLUMN_CHUNK_DATA + "' = '" + data + "' " +
                 "WHERE x = '" + x + "' AND y = '" + y + "' and z = '" + z + "'"
+
+        Gdx.app.log("DATABASE", "Updating $x $y $z ")
 
         try {
             dbHandler!!
@@ -71,6 +76,8 @@ class DatabaseHelper {
     fun findChunk(x: Float, y: Float, z: Float): Boolean {
         var cursor: DatabaseCursor? = null
 
+        Gdx.app.log("DATABASE", "Finding $x $y $z ")
+
         try {
             cursor = dbHandler!!.rawQuery("SELECT * FROM $TABLE_CHUNKS WHERE x = '$x' AND y = '$y' and z = '$z'")
         } catch (e: SQLiteGdxException) {
@@ -84,15 +91,13 @@ class DatabaseHelper {
     fun getChunk(x: Float, y: Float, z: Float): String? {
         var cursor: DatabaseCursor? = null
 
+        Gdx.app.log("DATABASE", "GETTING $x $y $z ")
+
         try {
             cursor = dbHandler!!.rawQuery("SELECT * FROM $TABLE_CHUNKS WHERE x = '$x' AND y = '$y' and z = '$z'")
         } catch (e: SQLiteGdxException) {
             e.printStackTrace()
         }
-
-        //        while (cursor.next()) {
-        //            Gdx.app.log("FromDb", String.valueOf(cursor.getString(0)) + " "  + String.valueOf(cursor.getString(1)) + " "  + String.valueOf(cursor.getString(3)) + " "  + String.valueOf(cursor.getString(4)));
-        //        }
 
         if (cursor!!.count > 0) {
             cursor.next()
@@ -111,11 +116,8 @@ class DatabaseHelper {
             e.printStackTrace()
         }
 
-        Gdx.app.log("FromDb", " " + cursor!!.count)
+        Gdx.app.log("DATABASE", "COUNT " + cursor!!.count)
 
-        //        while (cursor.next()) {
-        //            Gdx.app.log("FromDb", String.valueOf(cursor.getString(1)) + " "  + String.valueOf(cursor.getString(2)) + " "  + String.valueOf(cursor.getString(3)) + " "  + String.valueOf(cursor.getString(4)));
-        //        }
     }
 
     fun closeDatabase() {
@@ -126,11 +128,11 @@ class DatabaseHelper {
         }
 
         dbHandler = null
-        Gdx.app.log("DatabaseHelper", "dispose")
+        Gdx.app.log("DATABASE", "dispose")
     }
 
     init {
-        Gdx.app.log("DatabaseHelper", "creation started")
+        Gdx.app.log("DATABASE", "creation started")
         dbHandler = DatabaseFactory.getNewDatabase(DATABASE_NAME,
                 DATABASE_VERSION, DATABASE_CREATE, null)
 
@@ -142,7 +144,7 @@ class DatabaseHelper {
             e.printStackTrace()
         }
 
-        Gdx.app.log("DatabaseHelper", "created successfully")
+        Gdx.app.log("DATABASE", "created successfully")
 
         //addChunk(0, 0, 0, "1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1");
         //getChunk(5, 5, 5);

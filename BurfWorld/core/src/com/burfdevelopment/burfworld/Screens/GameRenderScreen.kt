@@ -38,7 +38,7 @@ import com.burfdevelopment.burfworld.Utils.InputController
 class GameRenderScreen : Screen {
 
     private val stage = Stage()
-    private var font: BitmapFont? = null
+    private var font: BitmapFont = BitmapFont()
     private var camera: PerspectiveCamera = PerspectiveCamera(67f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
     private var fps: InputController? = null
     private var lights: Environment = Environment()
@@ -66,11 +66,14 @@ class GameRenderScreen : Screen {
 
     var tmp = Vector3();
 
+    fun setupFont() {
+        font.color = Color.WHITE
+        font.data.setScale(2.0f)
+    }
+
     override fun show() {
 
-        //TODO create one asset manager
-        font = BitmapFont()
-        font!!.color = Color.WHITE
+        setupFont()
 
         compileShaderTexture()
         Skybox.createSkyBox()
@@ -301,11 +304,17 @@ class GameRenderScreen : Screen {
 
     fun drawFPS() {
 
+        val fonYOffSet = 35.0f
+        val FontXOffSet = 10.0f
+
         stage.batch.begin()
-        font!!.draw(stage.batch, "FPS: " + Gdx.graphics.framesPerSecond + " Cube Count " + Constants.cubeCount + " rend Count " + Constants.renderCount, 10f, (Gdx.graphics.height - 10).toFloat())
-        font!!.draw(stage.batch, "Mem: " + Gdx.app.javaHeap / 1000000f + " " + Gdx.app.nativeHeap / 1000000f, 10f, (Gdx.graphics.height - 30).toFloat())
-        font!!.draw(stage.batch, "X: " + camera.position.x + " Y " + camera.position.y + " Z " + camera.position.z, 10f, (Gdx.graphics.height - 50).toFloat())
-        font!!.draw(stage.batch, "Mode: " + fps!!.isAdding, 10f, (Gdx.graphics.height - 70).toFloat())
+        
+        font!!.draw(stage.batch, "FPS: " + Gdx.graphics.framesPerSecond + " Cube Count " + Constants.cubeCount + " rend Count " + Constants.renderCount, FontXOffSet, Gdx.graphics.height - (fonYOffSet * 1))
+        font!!.draw(stage.batch, "Mem: " + Gdx.app.javaHeap / 1000000f + " " + Gdx.app.nativeHeap / 1000000f, FontXOffSet, Gdx.graphics.height - (fonYOffSet * 2))
+        font!!.draw(stage.batch, "X: " + camera.position.x + " Y " + camera.position.y + " Z " + camera.position.z, FontXOffSet,Gdx.graphics.height - (fonYOffSet * 3))
+        // cool if :)
+        font!!.draw(stage.batch, "Mode: " + if (fps!!.isAdding) "adding" else "removing", FontXOffSet, Gdx.graphics.height - (fonYOffSet * 4))
+
         stage.batch.end()
     }
 
