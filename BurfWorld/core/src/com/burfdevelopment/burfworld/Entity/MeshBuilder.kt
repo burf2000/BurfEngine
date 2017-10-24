@@ -40,9 +40,43 @@ public class MeshBuilder constructor() {
         var database = DatabaseHelper()
     }
 
-    constructor(position: Vector3) : this() {
+    constructor(position: Vector3, pos: Vector3, cubes: com.badlogic.gdx.utils.Array<Model>) : this() {
         this.position = position
-        database.addChunk(position.x, position.y, position.z, chunkToString())
+
+        var s = String()
+
+        val xx = (pos.x - position.x).toInt() + Constants.chunkSize / 2//pos.x % 16;
+        val yy = (pos.y - position.y).toInt() + Constants.chunkSize / 2 //pos.y % 16;
+        val zz = (pos.z - position.z).toInt() + Constants.chunkSize / 2 //pos.z % 16;
+
+        for (x in 0 until Constants.chunkSize) {
+
+            for (y in 0 until Constants.chunkSize) {
+
+                for (z in 0 until Constants.chunkSize) {
+
+                    if (x == xx && y == yy && z == zz) {
+                        s += "5,"
+                        //Gdx.app.log("FOUND", "FOUND " + " x " + x  + " y " + y + " z " + z + " xx " + xx  + " yy " + yy + " zz " + zz )
+                    } else {
+                        s += "-1,"
+                        //Gdx.app.log("NOT FOUND", "FOUND " + " x " + x  + " y " + y + " z " + z + " xx " + xx  + " yy " + yy + " zz " + zz )
+                    }
+                }
+            }
+        }
+
+        database.addChunk(position.x, position.y, position.z, s.substring(0, s.length - 1))
+        // todo this is shit
+        // update chunk
+        val data = database.getChunk(position.x, position.y, position.z)
+        if (data != null) {
+            val s = data!!.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+            // create a mesh based on data in s
+            populateMeshes(cubes, s)
+        }
+        needed = true
+
     }
 
     constructor(position: Vector3, cubes: com.badlogic.gdx.utils.Array<Model>) : this() {
@@ -116,12 +150,12 @@ public class MeshBuilder constructor() {
         val y = (pos.y - position.y).toInt() + Constants.chunkSize / 2 //pos.y % 16;
         val z = (pos.z - position.z).toInt() + Constants.chunkSize / 2 //pos.z % 16;
 
-        if (x > 15 || x < 0 || y > 15 || y < 0 || z > 15 || z < 0) {
-            Gdx.app.log("PART 3", " " + position.x.toInt() + " " + position.y.toInt() + " " + position.z.toInt())
-            Gdx.app.log("PART 3", " " + pos.x.toInt() + " " + pos.y.toInt() + " " + pos.z.toInt())
-            //Gdx.app.log("PART 3", " " + (int)pos.x + (Constants.chunkSize / 2) + " " + (int)pos.y + " " + (int)pos.z + (Constants.chunkSize / 2) );
-            Gdx.app.log("PART 3", " $x $y $z")
-        }
+//        if (x > 15 || x < 0 || y > 15 || y < 0 || z > 15 || z < 0) {
+//            Gdx.app.log("PART 3", " " + position.x.toInt() + " " + position.y.toInt() + " " + position.z.toInt())
+//            Gdx.app.log("PART 3", " " + pos.x.toInt() + " " + pos.y.toInt() + " " + pos.z.toInt())
+//            //Gdx.app.log("PART 3", " " + (int)pos.x + (Constants.chunkSize / 2) + " " + (int)pos.y + " " + (int)pos.z + (Constants.chunkSize / 2) );
+//            Gdx.app.log("PART 3", " $x $y $z")
+//        }
 
         GameRenderHelper.chunk[x][y][z] = Constants.BrickState.SHOW.value + r
         database.updateChunk(position.x, position.y, position.z, chunkToString())

@@ -336,8 +336,6 @@ class GameRenderScreen : Screen {
 
         //todo tidy this up
         Gdx.app.log("PART 1", "x " + x + "y " + y + " z " + z + " V" + vv.toString())
-        //Gdx.app.log("PART 2", "x " + (int) x / Constants.chunkSize + " y " + MathUtils.round(y) + " z " + (int) z / Constants.chunkSize );
-        //Gdx.app.log("PART 2", "SIZE " + chunks2.size);
 
         // work out what side we touched
         val xDif: Float
@@ -365,8 +363,6 @@ class GameRenderScreen : Screen {
         } else {
             zDif = vv.z - z
         }
-
-        //Gdx.app.log("PART 1", "x " + xDif + "y " + yDif + " z " + zDif);
 
         if (xDif > yDif && xDif > zDif) {
             if (x > vv.x) {
@@ -406,11 +402,6 @@ class GameRenderScreen : Screen {
                 Gdx.app.log("PART 2", "Found chunk " + chunks2!!.get(i).position.toString() + " " + Vector3(x, y, z))
                 foundChunk = true
 
-                // take away the plus 1
-                //                x = x - xOffset;
-                //                y = y - yOffset;
-                //                z = z - zOffset;
-
                 chunks2!!.get(i).addMesh(Vector3(x, y, z), cubes)
                 break
             }
@@ -442,11 +433,7 @@ class GameRenderScreen : Screen {
 
             val v = Vector3(xx.toFloat(), yy.toFloat(), zz.toFloat())
             Gdx.app.log("PART 2", "DID NOT FIND chunk " + v.toString() + " " + Vector3(x, y, z))
-            val m = MeshBuilder(v)
-
-            //            x = x - xOffset;
-            //            y = y - yOffset;
-            //            z = z - zOffset;
+            val m = MeshBuilder(v,Vector3(MathUtils.round(x).toFloat(), MathUtils.round(y).toFloat(), MathUtils.round(z).toFloat()), cubes)
 
             m.addMesh(Vector3(MathUtils.round(x).toFloat(), MathUtils.round(y).toFloat(), MathUtils.round(z).toFloat()), cubes)
             // create empty chunk
