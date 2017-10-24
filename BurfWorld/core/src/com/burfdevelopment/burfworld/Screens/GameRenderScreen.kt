@@ -308,7 +308,7 @@ class GameRenderScreen : Screen {
         val FontXOffSet = 10.0f
 
         stage.batch.begin()
-        
+
         font!!.draw(stage.batch, "FPS: " + Gdx.graphics.framesPerSecond + " Cube Count " + Constants.cubeCount + " rend Count " + Constants.renderCount, FontXOffSet, Gdx.graphics.height - (fonYOffSet * 1))
         font!!.draw(stage.batch, "Mem: " + Gdx.app.javaHeap / 1000000f + " " + Gdx.app.nativeHeap / 1000000f, FontXOffSet, Gdx.graphics.height - (fonYOffSet * 2))
         font!!.draw(stage.batch, "X: " + camera.position.x + " Y " + camera.position.y + " Z " + camera.position.z, FontXOffSet,Gdx.graphics.height - (fonYOffSet * 3))
@@ -319,10 +319,16 @@ class GameRenderScreen : Screen {
     }
 
     fun removeObject(chunkIndex: Int, meshIndex: Int) {
+
+        Gdx.app.log("BUILDING", "Removing chunk " + chunkIndex + "mesh " + meshIndex)
+
         chunks2!!.get(chunkIndex).setDirtyPosition(meshIndex, cubes)
     }
 
     fun addObject(xxx: Float, yyy: Float, zzz: Float, vv: Vector3) {
+
+        Gdx.app.log("BUILDING", "Adding x " + xxx + "y " + yyy + " z " + zzz + " V" + vv.toString())
+
         // todo review
         var x = xxx
         var y = yyy
@@ -450,6 +456,8 @@ class GameRenderScreen : Screen {
     }
 
     fun getObject(screenX: Int, screenY: Int): Int {
+
+        Gdx.app.log("BUILDING", "GETTING x " + screenX + "y " + screenY )
 
         var chunkIndex = -1
         var meshIndex = -1

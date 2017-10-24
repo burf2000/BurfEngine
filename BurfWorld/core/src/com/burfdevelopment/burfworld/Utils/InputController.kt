@@ -12,6 +12,9 @@ import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.burfdevelopment.burfworld.Screens.GameRenderScreen
+import com.badlogic.gdx.math.Vector2
+
+
 
 /**
  * Created by burfies1 on 20/10/2017.
@@ -29,6 +32,11 @@ class InputController : FirstPersonCameraController {
 
     var tmp2 = Vector3();
     private var degreesPerPixel2 = 0.5f
+
+    // stop to much dragging
+    private val touchPos = Vector2()
+    private val dragPos = Vector2()
+    private val radius = 20f 
 
     @JvmField
     var isAdding = true
@@ -77,8 +85,8 @@ class InputController : FirstPersonCameraController {
         }
 
         val multiplexer = InputMultiplexer()
-        multiplexer.addProcessor(this)
         multiplexer.addProcessor(stage)
+        multiplexer.addProcessor(this)
         Gdx.input.inputProcessor = multiplexer
 
     }
@@ -129,21 +137,28 @@ class InputController : FirstPersonCameraController {
     }
 
     override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
-        hasMoved = true
 
-        var cutoff = width() * 0.75
-        if (screenX > cutoff && pointer == 1 && Gdx.app.type == Application.ApplicationType.Android || Gdx.app.type == Application.ApplicationType.iOS) {
+        dragPos.set(screenX.toFloat(), height() - screenY.toFloat())
+        val distance = touchPos.dst(dragPos)
 
-            var deltaX = -Gdx.input.getDeltaX(1) * degreesPerPixel2
-            var deltaY = -Gdx.input.getDeltaY(1) * degreesPerPixel2
+        if (distance <= radius) {
+            Gdx.app.log("BUILDING", "Not Dragging " + distance)
+        } else {
+            Gdx.app.log("BUILDING", "Dragging " + distance)
+            hasMoved = true
 
-            myCamera.direction.rotate(myCamera.up, deltaX)
-            tmp2.set(myCamera.direction).crs(myCamera.up).nor()
-            myCamera.direction.rotate(tmp2, deltaY)
+            var cutoff = width() * 0.75
+            if (screenX > cutoff && pointer == 1 && Gdx.app.type == Application.ApplicationType.Android || Gdx.app.type == Application.ApplicationType.iOS) {
 
-            Gdx.app.log("INPUT", "DRAG " + pointer + " super " + super.touchDragged(screenX, screenY, 0))
+                var deltaX = -Gdx.input.getDeltaX(1) * degreesPerPixel2
+                var deltaY = -Gdx.input.getDeltaY(1) * degreesPerPixel2
 
-            return true
+                myCamera.direction.rotate(myCamera.up, deltaX)
+                tmp2.set(myCamera.direction).crs(myCamera.up).nor()
+                myCamera.direction.rotate(tmp2, deltaY)
+
+                return true
+            }
         }
 
         return super.touchDragged(screenX, screenY, pointer)
@@ -152,6 +167,8 @@ class InputController : FirstPersonCameraController {
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         hasMoved = false
         Gdx.app.log("INPUT", "touch Down " + pointer + " " + button)
+
+        touchPos.set(screenX.toFloat(), height() - screenY.toFloat());
 
         return super.touchDown(screenX, screenY, pointer, button)
     }
