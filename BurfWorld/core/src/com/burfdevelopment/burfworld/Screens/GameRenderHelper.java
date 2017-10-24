@@ -1,5 +1,6 @@
 package com.burfdevelopment.burfworld.Screens;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.VertexAttributes;
@@ -23,6 +24,8 @@ public class GameRenderHelper {
 
     public static Mesh mergeMeshes(Array<Mesh> meshes, Array<Matrix4> transformations)
     {
+        Gdx.app.log("CUBE MESH2-1", " "  + meshes.size);
+
 
         if(meshes.size == 0) return null;
 
@@ -43,6 +46,8 @@ public class GameRenderHelper {
             {
                 meshes.set(i, copyMesh(mesh, true, false, vaA));
             }
+
+            Gdx.app.log("CUBE MESH2-1", " "  + i);
 
             vertexArrayTotalSize += mesh.getNumVertices() * mesh.getVertexSize() / 4;
             indexArrayTotalSize += mesh.getNumIndices();
@@ -77,11 +82,15 @@ public class GameRenderHelper {
                 indexOffset += numIndices;
             }
 
+            Gdx.app.log("CUBE MESH2-2", " "  + i);
+
             mesh.getVertices(0, baseSize, vertices, vertexSizeOffset);
             Mesh.transform(transformations.get(i), vertices, vertexSize, offset, numComponents, vertexOffset, numVertices);
             vertexOffset += numVertices;
             vertexSizeOffset += baseSize;
         }
+
+        Gdx.app.log("CUBE MESH2-1", " "  + meshes.size);
 
         Mesh result = new Mesh(true, vertexOffset, indices.length, meshes.get(0).getVertexAttributes());
         result.setVertices(vertices);
@@ -179,12 +188,12 @@ public class GameRenderHelper {
         return result;
     }
 
-    Timer.Task s = new Timer.Task() {
-        @Override
-        public void run() {
-
-        }
-    };
+//    Timer.Task s = new Timer.Task() {
+//        @Override
+//        public void run() {
+//
+//        }
+//    };
 
 
 }

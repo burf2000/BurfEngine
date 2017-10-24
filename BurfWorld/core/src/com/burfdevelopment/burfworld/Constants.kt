@@ -5,7 +5,7 @@ package com.burfdevelopment.burfworld
  */
 object Constants {
 
-    @JvmField val chunkSize = 16
+    @JvmField val chunkSize = 10 // limited to 13?
     @JvmField val renderCount: Int = 0
     @JvmField val cubeCount: Int = 0
 

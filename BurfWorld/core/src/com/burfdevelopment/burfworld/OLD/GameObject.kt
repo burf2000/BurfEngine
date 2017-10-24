@@ -1,4 +1,4 @@
-package com.burfdevelopment.burfworld.Entity
+package com.burfdevelopment.burfworld.OLD
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.g3d.Model

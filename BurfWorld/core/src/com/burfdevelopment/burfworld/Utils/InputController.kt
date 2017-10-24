@@ -36,7 +36,7 @@ class InputController : FirstPersonCameraController {
     // stop to much dragging
     private val touchPos = Vector2()
     private val dragPos = Vector2()
-    private val radius = 20f 
+    private val radius = 20f
 
     @JvmField
     var isAdding = true

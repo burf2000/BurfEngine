@@ -65,7 +65,7 @@ class DatabaseHelper {
         }
 
         while (cursor!!.next()) {
-            Gdx.app.log("FromDb", cursor.getString(0).toString() + " " + cursor.getString(1).toString() + " " + cursor.getString(3).toString() + " " + cursor.getString(4).toString())
+            Gdx.app.log("DATABASE", cursor.getString(0).toString() + " " + cursor.getString(1).toString() + " " + cursor.getString(3).toString() + " " + cursor.getString(4).toString())
             val r = Vector3(java.lang.Float.valueOf(cursor.getString(2))!!, java.lang.Float.valueOf(cursor.getString(3))!!, java.lang.Float.valueOf(cursor.getString(4))!!)
             v.add(r)
         }
