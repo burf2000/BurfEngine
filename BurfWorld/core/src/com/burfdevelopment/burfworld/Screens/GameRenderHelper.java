@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Timer;
 import com.burfdevelopment.burfworld.Constants;
 
 /**
@@ -177,5 +178,13 @@ public class GameRenderHelper {
         result.setIndices(indices);
         return result;
     }
+
+    Timer.Task s = new Timer.Task() {
+        @Override
+        public void run() {
+
+        }
+    };
+
 
 }

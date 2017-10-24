@@ -6,6 +6,9 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.g3d.utils.FirstPersonCameraController
+import com.badlogic.gdx.math.Vector3
+import com.badlogic.gdx.scenes.scene2d.InputEvent
+import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.burfdevelopment.burfworld.Screens.GameRenderScreen
@@ -13,28 +16,34 @@ import com.burfdevelopment.burfworld.Screens.GameRenderScreen
 /**
  * Created by burfies1 on 20/10/2017.
  */
-class InputController: FirstPersonCameraController {
+class InputController : FirstPersonCameraController {
 
     private var gameRenderScreen: GameRenderScreen = GameRenderScreen()
     private val forwardButton = TextButton("Forward", Gui.skin)
     private val backwardButton = TextButton("Backward", Gui.skin)
     private val leftButton = TextButton("Left", Gui.skin)
     private val rightButton = TextButton("Right", Gui.skin)
+    private val jumpButton = TextButton("Jump", Gui.skin)
+    private val modeButton = TextButton("Mode", Gui.skin)
+    var myCamera: Camera
 
-    @JvmField var isAdding = true
+    var tmp2 = Vector3();
+    private var degreesPerPixel2 = 0.5f
 
-    constructor(camera: Camera) : super(camera) {}
+    @JvmField
+    var isAdding = true
 
     constructor(camera: Camera, gameRenderScreen: GameRenderScreen, stage: Stage) : super(camera) {
         this.gameRenderScreen = gameRenderScreen
+        myCamera = camera
 
         // create control
         if (Gdx.app.type == Application.ApplicationType.Android || Gdx.app.type == Application.ApplicationType.iOS) {
 
-            var width : Float = Gdx.graphics.width / 10f
-            var height : Float = Gdx.graphics.height / 10f
+            var width: Float = width() / 10f
+            var height: Float = height() / 10f
 
-            forwardButton.setBounds(50f + width , 100f + (height * 2), width, height)
+            forwardButton.setBounds(50f + width, 100f + (height * 2), width, height)
             stage.addActor(forwardButton)
 
             leftButton.setBounds(50f, 50f + height, width, height)
@@ -43,15 +52,33 @@ class InputController: FirstPersonCameraController {
             rightButton.setBounds(50f + (width * 2), 50f + height, width, height)
             stage.addActor(rightButton)
 
-            backwardButton.setBounds(50f + width , 10f, width, height)
+            backwardButton.setBounds(50f + width, 10f, width, height)
             stage.addActor(backwardButton)
+
+            jumpButton.setBounds(Gdx.graphics.width - width - 50f, 50f + height, width, height)
+            jumpButton.addListener(object : InputListener() {
+                override fun touchDown(event: InputEvent?, x: Float, y: Float, pointer: Int, button: Int): Boolean {
+                    if (gameRenderScreen.isJump == false && gameRenderScreen.jumping == 0.0f) {
+                        gameRenderScreen.isJump = true
+                    }
+                    return super.touchDown(event, x, y, pointer, button)
+                }
+            })
+            stage.addActor(jumpButton)
+
+            modeButton.setBounds(Gdx.graphics.width - width - 50f, 100f + (height * 2), width, height)
+            modeButton.addListener(object : InputListener() {
+                override fun touchDown(event: InputEvent?, x: Float, y: Float, pointer: Int, button: Int): Boolean {
+                    isAdding = !isAdding
+                    return super.touchDown(event, x, y, pointer, button)
+                }
+            })
+            stage.addActor(modeButton)
         }
 
-
-        //Todo fix this as it stops touching working
         val multiplexer = InputMultiplexer()
-        multiplexer.addProcessor(stage)
         multiplexer.addProcessor(this)
+        multiplexer.addProcessor(stage)
         Gdx.input.inputProcessor = multiplexer
 
     }
@@ -62,13 +89,15 @@ class InputController: FirstPersonCameraController {
             gameRenderScreen.isJump = true
         }
 
-        if (keycode == Input.Keys.ENTER) {
+        if (keycode == Input.Keys.ENTER || modeButton.isPressed) {
             isAdding = !isAdding
         }
 
+        Gdx.app.log("INPUT", "Keydown " + keycode)
         return super.keyDown(keycode)
     }
 
+    // Called from Render loop
     fun updateControls() {
 
         if (Gdx.app.type == Application.ApplicationType.Android || Gdx.app.type == Application.ApplicationType.iOS) {
@@ -97,16 +126,32 @@ class InputController: FirstPersonCameraController {
                 keyUp(Input.Keys.D)
             }
         }
-
     }
 
     override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
         hasMoved = true
+
+        if (screenX > (Gdx.graphics.width / 2) && pointer == 1 && Gdx.app.type == Application.ApplicationType.Android || Gdx.app.type == Application.ApplicationType.iOS) {
+
+            var deltaX = -Gdx.input.getDeltaX(1) * degreesPerPixel2
+            var deltaY = -Gdx.input.getDeltaY(1) * degreesPerPixel2
+
+            myCamera.direction.rotate(myCamera.up, deltaX)
+            tmp2.set(myCamera.direction).crs(myCamera.up).nor()
+            myCamera.direction.rotate(tmp2, deltaY)
+
+            Gdx.app.log("INPUT", "DRAG " + pointer + " super " + super.touchDragged(screenX, screenY, 0))
+
+            return true
+        }
+
         return super.touchDragged(screenX, screenY, pointer)
     }
 
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         hasMoved = false
+        Gdx.app.log("INPUT", "touch Down " + pointer + " " + button)
+
         return super.touchDown(screenX, screenY, pointer, button)
     }
 
@@ -114,6 +159,8 @@ class InputController: FirstPersonCameraController {
         if (hasMoved == false) {
             gameRenderScreen.getObject(screenX, screenY)
         }
+
+        Gdx.app.log("INPUT", "touch up " + pointer + " " + button)
 
         return super.touchUp(screenX, screenY, pointer, button)
     }
