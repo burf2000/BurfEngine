@@ -5,7 +5,7 @@ package com.burfdevelopment.burfworld
  */
 object Constants {
 
-    @JvmField val chunkSize = 4 // limited to 13?
+    @JvmField val chunkSize = 10 // limited to 13?
     @JvmField val renderCount: Int = 0
     @JvmField val cubeCount: Int = 0
 
@@ -21,7 +21,7 @@ object Constants {
     // inital height
     @JvmField val startingHeight = 15.0f
 
-    @JvmField val chunkArea = 1
+    @JvmField val chunkArea = 3
 
     enum class BrickState private constructor(var value: Int) {
         DELETED(-1), HIDDEN(0), SHOW(1)

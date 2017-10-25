@@ -49,9 +49,7 @@ public class MeshBuilder constructor() {
         val zz = (pos.z - position.z).toInt() + Constants.chunkSize / 2 //pos.z % 16;
 
         for (x in 0 until Constants.chunkSize) {
-
             for (y in 0 until Constants.chunkSize) {
-
                 for (z in 0 until Constants.chunkSize) {
 
                     if (x == xx && y == yy && z == zz) {
