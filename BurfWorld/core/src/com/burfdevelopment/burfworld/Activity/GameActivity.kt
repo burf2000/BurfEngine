@@ -2,7 +2,6 @@ package com.burfdevelopment.burfworld.Activity
 
 import com.badlogic.gdx.ApplicationListener
 import com.badlogic.gdx.Game
-import com.burfdevelopment.burfworld.Networking.Parse
 import com.burfdevelopment.burfworld.RenderObjects.Skybox
 import com.burfdevelopment.burfworld.Screens.MainMenuScreen
 
@@ -11,8 +10,7 @@ import com.burfdevelopment.burfworld.Screens.MainMenuScreen
  */
 class GameActivity : Game(), ApplicationListener {
 
-    // todo why does the 1 line init fail?
-    internal var mainMenu: MainMenuScreen? = null
+    internal lateinit var mainMenu: MainMenuScreen
 
     override fun create() {
 
@@ -37,7 +35,6 @@ class GameActivity : Game(), ApplicationListener {
 
         //DatabaseHelper d = new DatabaseHelper();
         //SQLHelper h = new SQLHelper("simon");
-
 
     }
 

@@ -21,12 +21,8 @@ public class GameRenderHelper {
     public static TextureRegion[][]  regions; // #2
     public static int[][][] chunk = new int[Constants.chunkSize][Constants.chunkSize][Constants.chunkSize];
 
-
     public static Mesh mergeMeshes(Array<Mesh> meshes, Array<Matrix4> transformations)
     {
-        Gdx.app.log("CUBE MESH2-1", " "  + meshes.size);
-
-
         if(meshes.size == 0) return null;
 
         int vertexArrayTotalSize = 0;
@@ -46,8 +42,6 @@ public class GameRenderHelper {
             {
                 meshes.set(i, copyMesh(mesh, true, false, vaA));
             }
-
-            Gdx.app.log("CUBE MESH2-1", " "  + i);
 
             vertexArrayTotalSize += mesh.getNumVertices() * mesh.getVertexSize() / 4;
             indexArrayTotalSize += mesh.getNumIndices();
@@ -73,7 +67,7 @@ public class GameRenderHelper {
             int offset = posAttr.offset / 4;
             int numComponents = posAttr.numComponents;
 
-            { //uzupelnianie tablicy indeksow
+            {
                 mesh.getIndices(indices, indexOffset);
                 for(int c = indexOffset; c < (indexOffset + numIndices); c++)
                 {
@@ -82,15 +76,11 @@ public class GameRenderHelper {
                 indexOffset += numIndices;
             }
 
-            Gdx.app.log("CUBE MESH2-2", " "  + i);
-
             mesh.getVertices(0, baseSize, vertices, vertexSizeOffset);
             Mesh.transform(transformations.get(i), vertices, vertexSize, offset, numComponents, vertexOffset, numVertices);
             vertexOffset += numVertices;
             vertexSizeOffset += baseSize;
         }
-
-        Gdx.app.log("CUBE MESH2-1", " "  + meshes.size);
 
         Mesh result = new Mesh(true, vertexOffset, indices.length, meshes.get(0).getVertexAttributes());
         result.setVertices(vertices);
@@ -187,13 +177,5 @@ public class GameRenderHelper {
         result.setIndices(indices);
         return result;
     }
-
-//    Timer.Task s = new Timer.Task() {
-//        @Override
-//        public void run() {
-//
-//        }
-//    };
-
 
 }

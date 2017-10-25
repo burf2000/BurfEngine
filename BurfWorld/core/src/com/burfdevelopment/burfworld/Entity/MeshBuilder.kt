@@ -17,7 +17,6 @@ import com.burfdevelopment.burfworld.Screens.GameRenderHelper
  * Created by burfies1 on 20/10/2017.
  */
 
-//todo save chuncks
 public class MeshBuilder constructor() {
     @JvmField
     var position: Vector3 = Vector3(0f, 0f, 0f)
@@ -56,11 +55,10 @@ public class MeshBuilder constructor() {
                 for (z in 0 until Constants.chunkSize) {
 
                     if (x == xx && y == yy && z == zz) {
-                        s += "5,"
+                        s += "5,"  // todo why are they 5 and not random
                         //Gdx.app.log("FOUND", "FOUND " + " x " + x  + " y " + y + " z " + z + " xx " + xx  + " yy " + yy + " zz " + zz )
                     } else {
                         s += "-1,"
-                        //Gdx.app.log("NOT FOUND", "FOUND " + " x " + x  + " y " + y + " z " + z + " xx " + xx  + " yy " + yy + " zz " + zz )
                     }
                 }
             }
@@ -85,33 +83,22 @@ public class MeshBuilder constructor() {
         val data = database.getChunk(position.x, position.y, position.z)
 
         if (data == null) {
-            //Gdx.app.log("NOT FOUND", "NOT FOUND")
             createMeshes(cubes)
         } else {
-            //Gdx.app.log("FOUND", "FOUND")
-
             val s = data.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
             // create a mesh based on data in s
-
             populateMeshes(cubes, s)
         }
 
         needed = true
     }
 
-//    constructor(position: Vector3, cubes: com.badlogic.gdx.utils.Array<Model>, data: String) : this(position) {
-//        this.position = position
-//        val s = data.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-//        populateMeshes(cubes, s)
-//        needed = true
-//    }
-
     fun setDirtyPosition(index: Int, cubes: com.badlogic.gdx.utils.Array<Model>) {
 
         val v = Vector3(transformations.get(index).`val`[12] - position.x, transformations.get(index).`val`[13] - position.y, transformations.get(index).`val`[14] - position.z)
 
-        Gdx.app.log("PART 2", " " + v.x + " " + v.y + " " + v.z)
-        Gdx.app.log("PART 2", " " + (v.x + Constants.chunkSize / 2).toInt() + " " + (v.y + Constants.chunkSize / 2).toInt() + " " + (v.z + Constants.chunkSize / 2).toInt())
+        //Gdx.app.log("PART 2", " " + v.x + " " + v.y + " " + v.z)
+        //Gdx.app.log("PART 2", " " + (v.x + Constants.chunkSize / 2).toInt() + " " + (v.y + Constants.chunkSize / 2).toInt() + " " + (v.z + Constants.chunkSize / 2).toInt())
 
         val indexX = (v.x + Constants.chunkSize / 2).toInt()
         val indexY = (v.y + Constants.chunkSize / 2).toInt()
@@ -150,13 +137,6 @@ public class MeshBuilder constructor() {
         val y = (pos.y - position.y).toInt() + Constants.chunkSize / 2 //pos.y % 16;
         val z = (pos.z - position.z).toInt() + Constants.chunkSize / 2 //pos.z % 16;
 
-//        if (x > 15 || x < 0 || y > 15 || y < 0 || z > 15 || z < 0) {
-//            Gdx.app.log("PART 3", " " + position.x.toInt() + " " + position.y.toInt() + " " + position.z.toInt())
-//            Gdx.app.log("PART 3", " " + pos.x.toInt() + " " + pos.y.toInt() + " " + pos.z.toInt())
-//            //Gdx.app.log("PART 3", " " + (int)pos.x + (Constants.chunkSize / 2) + " " + (int)pos.y + " " + (int)pos.z + (Constants.chunkSize / 2) );
-//            Gdx.app.log("PART 3", " $x $y $z")
-//        }
-
         GameRenderHelper.chunk[x][y][z] = Constants.BrickState.SHOW.value + r
         database.updateChunk(position.x, position.y, position.z, chunkToString())
 
@@ -167,7 +147,7 @@ public class MeshBuilder constructor() {
         var model: ModelInstance
         var index = 0
 
-        Gdx.app.log("CUBE 2", " " + data.count())
+        //Gdx.app.log("CUBE 2", " " + data.count())
 
         for (x in 0 until Constants.chunkSize) {
             for (y in 0 until Constants.chunkSize)
@@ -182,15 +162,14 @@ public class MeshBuilder constructor() {
                         meshes.addAll(model.model.meshes)
                         transformations.add(model.transform)
 
-                        Gdx.app.log("CUBE MESH2", " x " + (position.x + x - Constants.chunkSize / 2) * Constants.cubeSize + " y  " + (position.y + y - Constants.chunkSize / 2) * Constants.cubeSize + " z " + (position.z + z - Constants.chunkSize / 2) * Constants.cubeSize)
-
+                        //Gdx.app.log("CUBE MESH2", " x " + (position.x + x - Constants.chunkSize / 2) * Constants.cubeSize + " y  " + (position.y + y - Constants.chunkSize / 2) * Constants.cubeSize + " z " + (position.z + z - Constants.chunkSize / 2) * Constants.cubeSize)
                     }
 
                     index += 1
                 }
         }
 
-        Gdx.app.log("CUBE MESH2", index.toString() + " " + meshes.count() + " " + transformations.count())
+        //Gdx.app.log("CUBE MESH2", index.toString() + " " + meshes.count() + " " + transformations.count())
 
         Gdx.app.postRunnable {
             mesh = GameRenderHelper.mergeMeshes(meshes, transformations)
@@ -202,22 +181,21 @@ public class MeshBuilder constructor() {
         var model: ModelInstance
 
         for (x in 0 until Constants.chunkSize) {
-
             for (y in 0 until Constants.chunkSize) {
-
                 for (z in 0 until Constants.chunkSize) {
 
                     // select a random texture
                     val r = MathUtils.random(cubes.size - 1)
                     GameRenderHelper.chunk[x][y][z] = Constants.BrickState.SHOW.value + r
 
+                    // todo I think this makes colours
                     //cube.materials.get(0).set(ColorAttribute.createDiffuse(color));
                     //new VertexAttribute(Usage.ColorPacked, 4, "a_color"));
                     //model.materials.get(0).set(ColorAttribute.createDiffuse(color));
                     //model.model.materials.get(0).set(ColorAttribute.createDiffuse(color));
                     //model.transform.setToTranslation(position.x + x - (Constants.chunkSize / 2), position.y - y, position.z + z - (Constants.chunkSize / 2));
 
-                    Gdx.app.log("CUBE MESH", " x " + (position.x + x - Constants.chunkSize / 2) * Constants.cubeSize + " y  " + (position.y + y - Constants.chunkSize / 2) * Constants.cubeSize + " z " + (position.z + z - Constants.chunkSize / 2) * Constants.cubeSize)
+                    //Gdx.app.log("CUBE MESH", " x " + (position.x + x - Constants.chunkSize / 2) * Constants.cubeSize + " y  " + (position.y + y - Constants.chunkSize / 2) * Constants.cubeSize + " z " + (position.z + z - Constants.chunkSize / 2) * Constants.cubeSize)
 
                     model = ModelInstance(cubes.get(r), (position.x + x - Constants.chunkSize / 2) * Constants.cubeSize, (position.y + y - Constants.chunkSize / 2) * Constants.cubeSize, (position.z + z - Constants.chunkSize / 2) * Constants.cubeSize)
                     meshes.addAll(model.model.meshes)
@@ -242,13 +220,9 @@ public class MeshBuilder constructor() {
         var s = String()
 
         for (x in 0 until Constants.chunkSize) {
-
             for (y in 0 until Constants.chunkSize) {
-
                 for (z in 0 until Constants.chunkSize) {
-
                     s += GameRenderHelper.chunk[x][y][z].toString() + ","
-                    //s += "1,"
                 }
             }
         }
