@@ -48,7 +48,7 @@ class GameRenderScreen : Screen {
     private val modelBatch = ModelBatch()
     // chunk size is the chunkArea * chunkArea
     private lateinit var chunks2: Array<MeshBuilder>
-    private val oldPosition = Vector3()
+    private var oldPosition = Vector3()
 
     private lateinit var shaderProgram: ShaderProgram
 
@@ -88,7 +88,6 @@ class GameRenderScreen : Screen {
         setupChunks()
 
         // This allows to setup the scene before we render
-
         var task: Timer.Task = object : Timer.Task() {
             override fun run() {
                 disableRender = false
@@ -115,12 +114,12 @@ class GameRenderScreen : Screen {
 
     fun setupChunks() {
         chunks2 = Array()
-        createChunk(0f, 0f) //, camera.direction
+        createChunk(0f, 0f)
 
         // task so does not get fired off
         task = AsyncTask<Void> {
-            Gdx.app.log("DEBUG", "would be firing of createChunk");
-            createChunk((camera.position.x.toInt() / Constants.chunkSize).toFloat(), (camera.position.z.toInt() / Constants.chunkSize).toFloat()) //, camera.direction
+            Gdx.app.log("DEBUG", "Firing of createChunk");
+            createChunk((camera.position.x.toInt() / Constants.chunkSize).toFloat(), (camera.position.z.toInt() / Constants.chunkSize).toFloat())
             null
         }
 
@@ -130,7 +129,7 @@ class GameRenderScreen : Screen {
 
         oldPosition.set(camera.position)
         fps.updateControls()
-
+        fps.update()
         if (isJump == true) {
 
             jumping += Gdx.graphics.deltaTime * Constants.jumpRate
@@ -148,7 +147,6 @@ class GameRenderScreen : Screen {
         }
 
         checkCollison()
-        fps.update()
     }
 
     private fun checkCollison() {
@@ -165,10 +163,10 @@ class GameRenderScreen : Screen {
                         camera.position.z < chunks2.get(i).transformations.get(a).`val`[14] + Constants.cubeCollisonSize) {
 
                     if (camera.position.y > chunks2.get(i).transformations.get(a).`val`[13] - Constants.cubeCollisonSize && camera.position.y < chunks2.get(i).transformations.get(a).`val`[13] + Constants.cubeCollisonSize) {
+                        //Gdx.app.log("DEBUG", "Collision 1 "+ camera.position.toString());
                         collison = true
                         break
                     } else if (chunks2.get(i).transformations.get(a).`val`[13] + 1.0 <= camera.position.y) {
-
                         if (chunks2.get(i).transformations.get(a).`val`[13] + Constants.headHeight > height) {
                             height = chunks2.get(i).transformations.get(a).`val`[13] + Constants.headHeight
                         }
@@ -184,6 +182,7 @@ class GameRenderScreen : Screen {
 
         if (collison == true) {
             camera.position.set(oldPosition)
+            //Gdx.app.log("DEBUG", "Collision 2 " + oldPosition.toString());
         } else {
 
             if (height > currentHeight + 2.0f) {
@@ -211,9 +210,9 @@ class GameRenderScreen : Screen {
         accum += Gdx.graphics.deltaTime
 
         if (accum >= TICK)
-        // fire off chunk builder
         {
             accum = 0.0f
+            // fire off chunk builder
             executor.submit(task)
         }
 
@@ -237,7 +236,6 @@ class GameRenderScreen : Screen {
 
         shaderProgram.begin()
         texture.bind()
-        //shaderProgram.setUniformi(uniformLocation, context.textureBinder.bind(texture));
         shaderProgram.setUniformMatrix("u_projTrans", camera.combined)
         shaderProgram.setAttributef("a_color", 1f, 1f, 1f, 1f)
         shaderProgram.setUniformi("u_texture", 0)
@@ -482,7 +480,7 @@ class GameRenderScreen : Screen {
         for (i in 0 until chunks2.size) {
 
             if (chunks2.get(i).position.x == x * Constants.chunkSize && chunks2.get(i).position.z == z * Constants.chunkSize) {
-                Gdx.app.log("ERROR", "FOUND " + chunks2.get(i).position.x.toString());
+                //Gdx.app.log("ERROR", "FOUND " + chunks2.get(i).position.x.toString());
                 chunks2.get(i).needed = true
                 found = true
             }

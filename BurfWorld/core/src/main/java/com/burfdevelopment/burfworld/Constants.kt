@@ -6,14 +6,13 @@ package com.burfdevelopment.burfworld
 object Constants {
 
     // todo comment what these do
-    @JvmField val chunkSize = 10 // limited to 13?
-    @JvmField var renderCount: Int = 0
-    @JvmField var cubeCount: Int = 0
+    @JvmField val chunkSize = 10 // limited to 13 as weird issue?
+    @JvmField var renderCount: Int = 0 // how many cubes on screen
 
     @JvmField val rayDistance = 40
 
-    @JvmField val cubeCollisonSize = 0.8f
-    @JvmField val cubeSize = 1.0f //1
+    @JvmField val cubeCollisonSize = 0.8f // ??
+    @JvmField val cubeSize = 1.0f // size of cube
 
     @JvmField val jumpRate = 5f
     @JvmField val maxJump = 1.5f
@@ -22,6 +21,7 @@ object Constants {
     // inital height
     @JvmField val startingHeight = 15.0f
 
+    // how many chunks to make chunkArea * chunkArea
     @JvmField val chunkArea = 3
 
     enum class BrickState  constructor(var value: Int) {

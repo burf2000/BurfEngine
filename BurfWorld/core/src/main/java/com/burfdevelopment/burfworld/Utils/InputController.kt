@@ -6,15 +6,13 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.g3d.utils.FirstPersonCameraController
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.burfdevelopment.burfworld.Screens.GameRenderScreen
-import com.badlogic.gdx.math.Vector2
-
-
 
 /**
  * Created by burfies1 on 20/10/2017.
@@ -101,11 +99,10 @@ class InputController : FirstPersonCameraController {
             isAdding = !isAdding
         }
 
-        if (keycode == Input.Keys.Q || keycode == Input.Keys.ESCAPE ) {
+        if (keycode == Input.Keys.Q || keycode == Input.Keys.ESCAPE) {
             Gdx.app.exit()
         }
 
-        //Gdx.app.log("INPUT", "Keydown " + keycode)
         return super.keyDown(keycode)
     }
 
@@ -146,9 +143,7 @@ class InputController : FirstPersonCameraController {
         val distance = touchPos.dst(dragPos)
 
         if (distance <= radius) {
-            //Gdx.app.log("BUILDING", "Not Dragging " + distance)
         } else {
-           // Gdx.app.log("BUILDING", "Dragging " + distance)
             hasMoved = true
 
             var cutoff = width() * 0.75
@@ -170,8 +165,6 @@ class InputController : FirstPersonCameraController {
 
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         hasMoved = false
-        //Gdx.app.log("INPUT", "touch Down " + pointer + " " + button)
-
         touchPos.set(screenX.toFloat(), height() - screenY.toFloat());
 
         return super.touchDown(screenX, screenY, pointer, button)
@@ -181,8 +174,6 @@ class InputController : FirstPersonCameraController {
         if (hasMoved == false) {
             gameRenderScreen.getObject(screenX, screenY)
         }
-
-        //Gdx.app.log("INPUT", "touch up " + pointer + " " + button)
 
         return super.touchUp(screenX, screenY, pointer, button)
     }
