@@ -78,8 +78,8 @@ class GameRenderScreen : Screen {
         compileShaderTexture()
         Skybox.createSkyBox()
 
-        camera.near = 0.1f // 0.5 //todo find out what this is again
-        camera.far = 1000f
+        camera.near = 0.5f
+        camera.far = 300.0f
         camera.position.set(0f, Constants.startingHeight, 0f)
 
         fps = InputController(camera, this, stage)
@@ -101,17 +101,16 @@ class GameRenderScreen : Screen {
         lights.set(ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f))
         lights.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, 1f, -0.8f, -0.2f))
 
-// todo put back in (random blocks)
-//        modelBuilder!!.begin()
-//        val mpb = modelBuilder!!.part("box", GL20.GL_TRIANGLES, (VertexAttributes.Usage.Position or VertexAttributes.Usage.Normal or VertexAttributes.Usage.TextureCoordinates).toLong(), Material(ColorAttribute.createDiffuse(Color.BLUE)))
-//        mpb.setUVRange(GameRenderHelper.regions!![1][1])
-//        mpb.box(0f, 9f, 0f, 0.5f, 0.5f, 0.5f)
-//        mpb.box(0f, 8f, 0f, 0.5f, 0.5f, 0.5f)
-//
-//        person = modelBuilder!!.end()
+        // todo TAKE OUT WHEN COMMITTING TO GITHUB
+        // single blocks
+        modelBuilder.begin()
+        val mpb = modelBuilder.part("box", GL20.GL_TRIANGLES, (VertexAttributes.Usage.Position or VertexAttributes.Usage.Normal or VertexAttributes.Usage.TextureCoordinates).toLong(), Material(ColorAttribute.createDiffuse(Color.BLUE)))
+        mpb.setUVRange(MeshBuilder.regions!![1][1])
+        mpb.box(0f, 9f, 0f, 0.5f, 0.5f, 0.5f)
+        mpb.box(0f, 8f, 0f, 0.5f, 0.5f, 0.5f)
+        person = modelBuilder.end()
 
 
-        //chunks2.add(new MeshBuilder(new Vector3((0 * Constants.chunkSize), Constants.chunkSize, (-1 * Constants.chunkSize)), cubes));
     }
 
     fun setupChunks() {
@@ -215,7 +214,6 @@ class GameRenderScreen : Screen {
         // fire off chunk builder
         {
             accum = 0.0f
-            //TODO fix task
             executor.submit(task)
         }
 
@@ -244,9 +242,6 @@ class GameRenderScreen : Screen {
         shaderProgram.setAttributef("a_color", 1f, 1f, 1f, 1f)
         shaderProgram.setUniformi("u_texture", 0)
 
-//        for (i in 0 until chunks2.size) {
-//            chunks2.get(i).render(shaderProgram)
-//        }
 
         synchronized(chunks2) {
             var i = chunks2.iterator()
@@ -259,14 +254,13 @@ class GameRenderScreen : Screen {
 
         }
 
-
-        //person.getNode("box").translation(new Vector3(0f,2f,0f));
-        //person!!.meshes.get(0).render(shaderProgram, GL20.GL_TRIANGLES)
+        // todo TAKE OUT WHEN COMMITTING TO GITHUB
+        //person.getNode("box").translation(Vector3(0f,2f,0f))
+        person.meshes.get(0).render(shaderProgram, GL20.GL_TRIANGLES)
 
         shaderProgram.end()
 
-        // todo fix
-        //spriteBatch.setProjectionMatrix(camera.combined);
+        // display text
         spriteBatch.projectionMatrix = camera.combined
         spriteBatch.begin()
         font.draw(spriteBatch, "Testing 1 2 3", 0f, 10f)
@@ -298,21 +292,15 @@ class GameRenderScreen : Screen {
     fun removeObject(chunkIndex: Int, meshIndex: Int) {
 
         Gdx.app.log("BUILDING", "Removing chunk " + chunkIndex + "mesh " + meshIndex)
-
         chunks2.get(chunkIndex).setDirtyPosition(meshIndex, cubes)
     }
 
     fun addObject(xxx: Float, yyy: Float, zzz: Float, vv: Vector3) {
 
-        Gdx.app.log("BUILDING", "Adding x " + xxx + "y " + yyy + " z " + zzz + " V" + vv.toString())
-
-        // todo review
+        // function parameters are passed as VAL
         var x = xxx
         var y = yyy
         var z = zzz
-
-        //todo tidy this up
-        Gdx.app.log("PART 1", "x " + x + "y " + y + " z " + z + " V" + vv.toString())
 
         // work out what side we touched
         val xDif: Float
@@ -521,15 +509,11 @@ class GameRenderScreen : Screen {
         shaderProgram = ShaderProgram(vertexShader, fragmentShader)
 
         if (!shaderProgram.isCompiled) {
-
             Gdx.app.log("ERROR", "Couldn't compile shader: " + shaderProgram.log)
             throw GdxRuntimeException("Couldn't compile shader: " + shaderProgram.log)
         }
 
         MeshBuilder.regions = TextureRegion.split(texture, 64, 64)
-
-
-        //texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
 
         var cube: Model
 
@@ -539,7 +523,7 @@ class GameRenderScreen : Screen {
         //                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
 
 
-        //todo nasty need to think about
+        //todo nasty need to think about as its creating all of the textures cubes
         cubes = Array()
         for (x in 0..7) {
             for (y in 0..7) {

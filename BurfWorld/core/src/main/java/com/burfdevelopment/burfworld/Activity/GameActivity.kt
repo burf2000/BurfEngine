@@ -18,7 +18,7 @@ class GameActivity : Game(), ApplicationListener {
         mainMenu = MainMenuScreen()
         setScreen(mainMenu)
 
-        // todo review
+        // todo TAKE OUT WHEN COMMITTING TO GITHUB
         //val p = Parse()
         //p.add_net_score()
 
