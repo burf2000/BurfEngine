@@ -21,8 +21,15 @@ public class Skybox {
         private lateinit var model: Model
         lateinit var modelInstance: ModelInstance
         private lateinit var manager: AssetManager
-
         private var enabled: Boolean = false
+
+        const val skyboxXpos = "skybox/xpos.png"
+        const val skyboxXneg = "skybox/xneg.png"
+        const val skyboxYpos = "skybox/ypos.png"
+        const val skyboxYneg = "skybox/yneg.png"
+        const val skyboxZpos = "skybox/zpos.png"
+        const val skyboxZneg = "skybox/zneg.png"
+        const val skyBoxModel = "skybox/skybox.g3db"
 
         fun init() {
             enabled = false
@@ -39,7 +46,7 @@ public class Skybox {
 
             val modelParam = ModelLoader.ModelParameters()
             modelParam.textureParameter = modTexParam
-            manager.load("skybox/skybox.g3db", Model::class.java, modelParam)
+            manager.load(skyBoxModel, Model::class.java, modelParam)
 
             val skyTextureParam = TextureLoader.TextureParameter()
             skyTextureParam.genMipMaps = false
@@ -47,28 +54,27 @@ public class Skybox {
             skyTextureParam.minFilter = Texture.TextureFilter.Linear
 
             //Load Skybox
-            // todo make constant
-            manager.load("skybox/xpos.png", Texture::class.java, skyTextureParam)
-            manager.load("skybox/xneg.png", Texture::class.java, skyTextureParam)
-            manager.load("skybox/ypos.png", Texture::class.java, skyTextureParam)
-            manager.load("skybox/yneg.png", Texture::class.java, skyTextureParam)
-            manager.load("skybox/zpos.png", Texture::class.java, skyTextureParam)
-            manager.load("skybox/zneg.png", Texture::class.java, skyTextureParam)
+            manager.load(skyboxXpos, Texture::class.java, skyTextureParam)
+            manager.load(skyboxXneg, Texture::class.java, skyTextureParam)
+            manager.load(skyboxYpos, Texture::class.java, skyTextureParam)
+            manager.load(skyboxYneg, Texture::class.java, skyTextureParam)
+            manager.load(skyboxZpos, Texture::class.java, skyTextureParam)
+            manager.load(skyboxZneg, Texture::class.java, skyTextureParam)
 
             manager.finishLoading()
 
-            model = manager.get("skybox/skybox.g3db", Model::class.java)
+            model = manager.get(skyBoxModel, Model::class.java)
         }
 
         fun createSkyBox() { //Texture xpos, Texture xneg, Texture ypos, Texture yneg, Texture zpos, Texture zneg
             modelInstance = ModelInstance(model, "Skycube")
 
-            val xpos = manager.get("skybox/xpos.png", Texture::class.java)
-            val xneg = manager.get("skybox/xneg.png", Texture::class.java)
-            val ypos = manager.get("skybox/ypos.png", Texture::class.java)
-            val yneg = manager.get("skybox/yneg.png", Texture::class.java)
-            val zpos = manager.get("skybox/zpos.png", Texture::class.java)
-            val zneg = manager.get("skybox/zneg.png", Texture::class.java)
+            val xpos = manager.get(skyboxXpos, Texture::class.java)
+            val xneg = manager.get(skyboxXneg, Texture::class.java)
+            val ypos = manager.get(skyboxYpos, Texture::class.java)
+            val yneg = manager.get(skyboxYneg, Texture::class.java)
+            val zpos = manager.get(skyboxZpos, Texture::class.java)
+            val zneg = manager.get(skyboxZneg, Texture::class.java)
 
             // Set material textures
             modelInstance.materials.get(0).set(TextureAttribute.createDiffuse(xpos))

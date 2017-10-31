@@ -7,10 +7,8 @@ import com.badlogic.gdx.Net
  * Created by burfies1 on 21/10/2017.
  */
 
-class Parse : Net.HttpResponseListener {
 
-    private val app_id = "Dy95q3VpJ3z5Ppbl7dZhj4xmqY8vrj4Sck5VZWbA"
-    private val app_key = "1EleDLFzhQRRGChnoEhQ39QMWk03yB7O6Qu9lsZv"
+class Parse : Net.HttpResponseListener {
 
     fun add_net_score() {
         // LibGDX NET CLASS
@@ -44,5 +42,10 @@ class Parse : Net.HttpResponseListener {
 
     override fun cancelled() {
 
+    }
+
+    companion object {
+        const val app_id = "Dy95q3VpJ3z5Ppbl7dZhj4xmqY8vrj4Sck5VZWbA"
+        const val app_key = "1EleDLFzhQRRGChnoEhQ39QMWk03yB7O6Qu9lsZv"
     }
 }

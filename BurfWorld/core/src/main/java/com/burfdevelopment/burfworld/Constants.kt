@@ -5,6 +5,7 @@ package com.burfdevelopment.burfworld
  */
 object Constants {
 
+    // todo comment what these do
     @JvmField val chunkSize = 10 // limited to 13?
     @JvmField val renderCount: Int = 0
     @JvmField val cubeCount: Int = 0
@@ -23,10 +24,11 @@ object Constants {
 
     @JvmField val chunkArea = 3
 
-    enum class BrickState private constructor(var value: Int) {
+    enum class BrickState  constructor(var value: Int) {
         DELETED(-1), HIDDEN(0), SHOW(1)
     }
 
+    // todo why is this not used
     enum class TextureName {
         SMALL_GREY_BRICKS,
         LARGE_GREY_BRICKS,

@@ -10,7 +10,7 @@ import com.burfdevelopment.burfworld.Screens.MainMenuScreen
  */
 class GameActivity : Game(), ApplicationListener {
 
-    internal lateinit var mainMenu: MainMenuScreen
+    private lateinit var mainMenu: MainMenuScreen
 
     override fun create() {
 
@@ -18,9 +18,9 @@ class GameActivity : Game(), ApplicationListener {
         mainMenu = MainMenuScreen()
         setScreen(mainMenu)
 
+        // todo review
         //val p = Parse()
         //p.add_net_score()
-
 
         //		String javaLibPath = System.getProperty("java.library.path");
         //		Map<String, String> envVars = System.getenv();
@@ -36,9 +36,5 @@ class GameActivity : Game(), ApplicationListener {
         //DatabaseHelper d = new DatabaseHelper();
         //SQLHelper h = new SQLHelper("simon");
 
-    }
-
-    override fun render() {
-        super.render()
     }
 }

@@ -1,4 +1,5 @@
 buildscript {
+    project.ext.robopodsVersion = "2.2.1"
     repositories {
         mavenCentral()
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }

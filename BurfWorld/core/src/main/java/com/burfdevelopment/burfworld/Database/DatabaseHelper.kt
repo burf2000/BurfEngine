@@ -15,7 +15,6 @@ class DatabaseHelper {
 
     internal var dbHandler: com.badlogic.gdx.sql.Database? = null
 
-
     fun addChunk(x: Float, y: Float, z: Float, data: String) {
 
         if (findChunk(x, y, z) == false) {
