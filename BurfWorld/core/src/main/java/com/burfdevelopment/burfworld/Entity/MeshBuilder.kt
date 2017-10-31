@@ -24,7 +24,7 @@ public class MeshBuilder constructor() {
     var needed = true
     @JvmField
     var deleting = false
-    private var mesh: Mesh? = null
+    private lateinit var mesh: Mesh
     @JvmField
     var finished = false
     @JvmField
@@ -52,11 +52,10 @@ public class MeshBuilder constructor() {
             for (y in 0 until Constants.chunkSize) {
                 for (z in 0 until Constants.chunkSize) {
 
-                    if (x == xx && y == yy && z == zz) {
-                        s += "5,"  // todo why are they 5 and not random
-                        //Gdx.app.log("FOUND", "FOUND " + " x " + x  + " y " + y + " z " + z + " xx " + xx  + " yy " + yy + " zz " + zz )
+                    s += if (x == xx && y == yy && z == zz) {
+                        "5,"  // todo why are they 5 and not random
                     } else {
-                        s += "-1,"
+                        "-1,"
                     }
                 }
             }
@@ -105,6 +104,7 @@ public class MeshBuilder constructor() {
         GameRenderHelper.chunk[indexX][indexY][indexZ] = Constants.BrickState.DELETED.value
         meshes.removeIndex(index)
         transformations.removeIndex(index)
+        Constants.renderCount -=1
 
         // show brick behind it
         // todo maybe reimplement
@@ -130,7 +130,6 @@ public class MeshBuilder constructor() {
 
         mesh = GameRenderHelper.mergeMeshes(meshes, transformations)
 
-
         val x = (pos.x - position.x).toInt() + Constants.chunkSize / 2//pos.x % 16;
         val y = (pos.y - position.y).toInt() + Constants.chunkSize / 2 //pos.y % 16;
         val z = (pos.z - position.z).toInt() + Constants.chunkSize / 2 //pos.z % 16;
@@ -139,13 +138,13 @@ public class MeshBuilder constructor() {
         database.updateChunk(position.x, position.y, position.z, chunkToString())
 
         finished = true
+
+        Constants.renderCount +=1
     }
 
     fun populateMeshes(cubes: com.badlogic.gdx.utils.Array<Model>, data: Array<String>) {
         var model: ModelInstance
         var index = 0
-
-        //Gdx.app.log("CUBE 2", " " + data.count())
 
         for (x in 0 until Constants.chunkSize) {
             for (y in 0 until Constants.chunkSize)
@@ -159,10 +158,10 @@ public class MeshBuilder constructor() {
                         model = ModelInstance(cubes.get(GameRenderHelper.chunk[x][y][z] - Constants.BrickState.SHOW.value), (position.x + x - Constants.chunkSize / 2) * Constants.cubeSize, (position.y + y - Constants.chunkSize / 2) * Constants.cubeSize, (position.z + z - Constants.chunkSize / 2) * Constants.cubeSize)
                         meshes.addAll(model.model.meshes)
                         transformations.add(model.transform)
-
                         //Gdx.app.log("CUBE MESH2", " x " + (position.x + x - Constants.chunkSize / 2) * Constants.cubeSize + " y  " + (position.y + y - Constants.chunkSize / 2) * Constants.cubeSize + " z " + (position.z + z - Constants.chunkSize / 2) * Constants.cubeSize)
-                    }
 
+                        Constants.renderCount +=1
+                    }
                     index += 1
                 }
         }
@@ -199,6 +198,8 @@ public class MeshBuilder constructor() {
                     meshes.addAll(model.model.meshes)
 
                     transformations.add(model.transform)
+
+                    Constants.renderCount +=1
                 }
 
             }
@@ -231,7 +232,7 @@ public class MeshBuilder constructor() {
     fun checkDirty() {
         Gdx.app.postRunnable {
             if (dirty == true) {
-                mesh!!.dispose()
+                mesh.dispose()
                 mesh = GameRenderHelper.mergeMeshes(meshes, transformations)
                 dirty = false
                 finished = true
@@ -243,12 +244,12 @@ public class MeshBuilder constructor() {
         checkDirty()
 
         if (finished == true && deleting == false && mesh != null) {
-            mesh!!.render(shaderProgram, GL20.GL_TRIANGLES)
+            mesh.render(shaderProgram, GL20.GL_TRIANGLES)
         }
     }
 
     fun dispose() {
         deleting = true
-        mesh!!.dispose()
+        mesh.dispose()
     }
 }

@@ -23,13 +23,14 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.Array
 import com.badlogic.gdx.utils.GdxRuntimeException
 import com.badlogic.gdx.utils.Timer
-import com.badlogic.gdx.utils.Timer.Task
 import com.badlogic.gdx.utils.async.AsyncExecutor
 import com.badlogic.gdx.utils.async.AsyncTask
 import com.burfdevelopment.burfworld.Constants
 import com.burfdevelopment.burfworld.Entity.MeshBuilder
 import com.burfdevelopment.burfworld.RenderObjects.Skybox
 import com.burfdevelopment.burfworld.Utils.InputController
+import java.util.*
+import java.util.Collections.*
 
 /**
  * Created by burfies1 on 20/10/2017.
@@ -47,6 +48,7 @@ class GameRenderScreen : Screen {
     private val spriteBatch = SpriteBatch()
 
     private val modelBatch = ModelBatch()
+    // chunk size is the chunkArea * chunkArea
     private lateinit var chunks2: Array<MeshBuilder>
     private val oldPosition = Vector3()
 
@@ -80,21 +82,21 @@ class GameRenderScreen : Screen {
 
         camera.near = 0.1f // 0.5 //todo find out what this is again
         camera.far = 1000f
-
-        camera.position.set(0f,Constants.startingHeight,0f)
+        camera.position.set(0f, Constants.startingHeight, 0f)
 
         fps = InputController(camera, this, stage)
 
         disableRender = true
         setupChunks()
 
-        // todo timer example
+        // This allows to setup the scene before we render
+
         var task: Timer.Task = object : Timer.Task() {
             override fun run() {
                 disableRender = false
             }
         }
-
+        // 2 second delay
         Timer.schedule(task, 2.0f)
 
         //Light..
@@ -112,27 +114,20 @@ class GameRenderScreen : Screen {
 
 
         //chunks2.add(new MeshBuilder(new Vector3((0 * Constants.chunkSize), Constants.chunkSize, (-1 * Constants.chunkSize)), cubes));
-
-
-
     }
 
     fun setupChunks() {
         chunks2 = Array()
         createChunk(0f, 0f) //, camera.direction
 
-        // todo I have disabled the mega chunks
         // task so does not get fired off
         task = AsyncTask<Void> {
             Gdx.app.log("DEBUG", "would be firing of createChunk");
             createChunk((camera.position.x.toInt() / Constants.chunkSize).toFloat(), (camera.position.z.toInt() / Constants.chunkSize).toFloat()) //, camera.direction
-
             null
         }
 
-
     }
-
 
     private fun update() {
 
@@ -147,7 +142,7 @@ class GameRenderScreen : Screen {
                 isJump = false
             }
         } else {
-            //todo smooth jumping
+            //todo add a linear increase decrease to jumping
             jumping -= Gdx.graphics.deltaTime * Constants.jumpRate
 
             if (jumping < 0)
@@ -157,73 +152,49 @@ class GameRenderScreen : Screen {
 
         checkCollison()
         fps.update()
-
-
-        //camera.position.set(oldPosition);
-        // causing issue
-        //
     }
 
     private fun checkCollison() {
 
-        var height = 0f
+        var height = 0.0f
         var collison = false
 
         for (i in 0 until chunks2.size) {
 
-            if (camera.position.x > chunks2.get(i).position.x - Constants.chunkSize / 2 &&
-                    camera.position.x < chunks2.get(i).position.x + Constants.chunkSize / 2 &&
-                    //camera.position.y >= chunks2.get(i).position.y - (Constants.chunkSize / 2) &&
-                    //camera.position.y <= chunks2.get(i).position.y + (Constants.chunkSize / 2) &&
-                    camera.position.z > chunks2.get(i).position.z - Constants.chunkSize / 2 &&
-                    camera.position.z < chunks2.get(i).position.z + Constants.chunkSize / 2) {
+            for (a in 0 until chunks2.get(i).transformations.size) {
+                if (camera.position.x > chunks2.get(i).transformations.get(a).`val`[12] - Constants.cubeCollisonSize &&
+                        camera.position.z > chunks2.get(i).transformations.get(a).`val`[14] - Constants.cubeCollisonSize &&
+                        camera.position.x < chunks2.get(i).transformations.get(a).`val`[12] + Constants.cubeCollisonSize &&
+                        camera.position.z < chunks2.get(i).transformations.get(a).`val`[14] + Constants.cubeCollisonSize) {
 
-                for (a in 0 until chunks2.get(i).transformations.size) {
+                    if (camera.position.y > chunks2.get(i).transformations.get(a).`val`[13] - Constants.cubeCollisonSize && camera.position.y < chunks2.get(i).transformations.get(a).`val`[13] + Constants.cubeCollisonSize) {
+                        collison = true
+                        break
+                    } else if (chunks2.get(i).transformations.get(a).`val`[13] + 1.0 <= camera.position.y) {
 
-                    //Gdx.app.log("MyTag 2", "x " + chunks2.get(i).transformations.get(a).val[12] + " y " + chunks2.get(i).transformations.get(a).val[13] + " z " + chunks2.get(i).transformations.get(a).val[14]);
-                    //Gdx.app.log("MyTag 1", "y " + camera.position.y + " y " + chunks2.get(i).position.y);
-                    if (camera.position.x > chunks2.get(i).transformations.get(a).`val`[12] - Constants.cubeCollisonSize &&
-                            camera.position.z > chunks2.get(i).transformations.get(a).`val`[14] - Constants.cubeCollisonSize &&
-                            camera.position.x < chunks2.get(i).transformations.get(a).`val`[12] + Constants.cubeCollisonSize &&
-                            camera.position.z < chunks2.get(i).transformations.get(a).`val`[14] + Constants.cubeCollisonSize) {
-
-                        //Gdx.app.log("MyTag 2", "h " + chunks2.get(i).transformations.get(a).val[13] + " h " + camera.position.y);
-                        if (camera.position.y > chunks2.get(i).transformations.get(a).`val`[13] - Constants.cubeCollisonSize && camera.position.y < chunks2!!.get(i).transformations.get(a).`val`[13] + Constants.cubeCollisonSize) {
-                            //Gdx.app.log("MyTag 3","COLLISONs");
-                            collison = true
-                            break
-                        } else if (chunks2.get(i).transformations.get(a).`val`[13] + 1.0 <= camera.position.y) {
-                            //Gdx.app.log("MyTag 4","POO");
-                            if (chunks2.get(i).transformations.get(a).`val`[13] + Constants.headHeight > height) {
-                                height = chunks2.get(i).transformations.get(a).`val`[13] + Constants.headHeight
-                            }
-                        } else {
-                            //Gdx.app.log("MyTag 5","POO3");
-                            if (chunks2.get(i).transformations.get(a).`val`[13] > height) {
-                                height = chunks2.get(i).transformations.get(a).`val`[13]
-                            }
+                        if (chunks2.get(i).transformations.get(a).`val`[13] + Constants.headHeight > height) {
+                            height = chunks2.get(i).transformations.get(a).`val`[13] + Constants.headHeight
+                        }
+                    } else {
+                        if (chunks2.get(i).transformations.get(a).`val`[13] > height) {
+                            height = chunks2.get(i).transformations.get(a).`val`[13]
                         }
                     }
-
-                    //Gdx.app.log("FIRE", "X " + ((int) camera.position.x / Constants.chunkSize) + " y " + ((int) camera.position.y / Constants.chunkSize) + " z " + ((int) camera.position.z / Constants.chunkSize));
-                    //wGdx.app.log("FIRE", "X " + chunks2.get(i).position.x + " y " + chunks2.get(i).position.y + " z " + chunks2.get(i).position.z);
                 }
+
             }
         }
 
         if (collison == true) {
-            // Gdx.app.log("MyTag 2","COLLISONs");
             camera.position.set(oldPosition)
         } else {
 
             if (height > currentHeight + 2.0f) {
                 camera.position.set(oldPosition)
             } else if (height < currentHeight) {
-                //Gdx.app.log("MyTag 3"," c " + currentHeight);
                 currentHeight -= Gdx.graphics.deltaTime * 2
                 camera.position.set(camera.position.x, currentHeight + jumping, camera.position.z)
             } else {
-                //Gdx.app.log("MyTag 4"," c2 " + currentHeight);
                 currentHeight = height
                 camera.position.set(camera.position.x, currentHeight + jumping, camera.position.z)
             }
@@ -247,9 +218,7 @@ class GameRenderScreen : Screen {
         {
             accum = 0.0f
             //TODO fix task
-            //executor.submit(task)
-
-            //createChunk((int) camera.position.x / 16, (int) camera.position.z / 16, camera.direction);
+            executor.submit(task)
         }
 
         Gdx.gl20.glViewport(0, 0, Gdx.graphics.width, Gdx.graphics.height)
@@ -277,9 +246,21 @@ class GameRenderScreen : Screen {
         shaderProgram.setAttributef("a_color", 1f, 1f, 1f, 1f)
         shaderProgram.setUniformi("u_texture", 0)
 
-        for (i in 0 until chunks2.size) {
-            chunks2.get(i).render(shaderProgram)
+//        for (i in 0 until chunks2.size) {
+//            chunks2.get(i).render(shaderProgram)
+//        }
+
+        synchronized (chunks2) {
+            var i = chunks2.iterator()
+            var x = 0
+            while (i.hasNext()) {
+                chunks2.get(x).render(shaderProgram)
+                x +=1
+                i.next()
+            }
+
         }
+
 
         //person.getNode("box").translation(new Vector3(0f,2f,0f));
         //person!!.meshes.get(0).render(shaderProgram, GL20.GL_TRIANGLES)
@@ -307,9 +288,9 @@ class GameRenderScreen : Screen {
 
         stage.batch.begin()
 
-        font.draw(stage.batch, "FPS: " + Gdx.graphics.framesPerSecond + " Cube Count " + Constants.cubeCount + " rend Count " + Constants.renderCount, FontXOffSet, Gdx.graphics.height - (fonYOffSet * 1))
+        font.draw(stage.batch, "FPS: " + Gdx.graphics.framesPerSecond + " Cube Count " + Constants.renderCount + " chunk Count " + chunks2.size, FontXOffSet, Gdx.graphics.height - (fonYOffSet * 1))
         font.draw(stage.batch, "Mem: " + Gdx.app.javaHeap / 1000000f + " " + Gdx.app.nativeHeap / 1000000f, FontXOffSet, Gdx.graphics.height - (fonYOffSet * 2))
-        font.draw(stage.batch, "X: " + camera.position.x + " Y " + camera.position.y + " Z " + camera.position.z, FontXOffSet,Gdx.graphics.height - (fonYOffSet * 3))
+        font.draw(stage.batch, "X: " + camera.position.x + " Y " + camera.position.y + " Z " + camera.position.z, FontXOffSet, Gdx.graphics.height - (fonYOffSet * 3))
         // cool if :)
         font.draw(stage.batch, "Mode: " + if (fps.isAdding) "adding" else "removing", FontXOffSet, Gdx.graphics.height - (fonYOffSet * 4))
 
@@ -431,7 +412,7 @@ class GameRenderScreen : Screen {
 
             val v = Vector3(xx.toFloat(), yy.toFloat(), zz.toFloat())
             Gdx.app.log("PART 2", "DID NOT FIND chunk " + v.toString() + " " + Vector3(x, y, z))
-            val m = MeshBuilder(v,Vector3(MathUtils.round(x).toFloat(), MathUtils.round(y).toFloat(), MathUtils.round(z).toFloat()), cubes)
+            val m = MeshBuilder(v, Vector3(MathUtils.round(x).toFloat(), MathUtils.round(y).toFloat(), MathUtils.round(z).toFloat()), cubes)
 
             m.addMesh(Vector3(MathUtils.round(x).toFloat(), MathUtils.round(y).toFloat(), MathUtils.round(z).toFloat()), cubes)
             // create empty chunk
@@ -442,7 +423,7 @@ class GameRenderScreen : Screen {
 
     fun getObject(screenX: Int, screenY: Int): Int {
 
-        Gdx.app.log("BUILDING", "GETTING x " + screenX + "y " + screenY )
+        Gdx.app.log("BUILDING", "GETTING x " + screenX + "y " + screenY)
 
         var chunkIndex = -1
         var meshIndex = -1
@@ -476,7 +457,7 @@ class GameRenderScreen : Screen {
                     //bounds.mul(transfor);
 
                     val dist2 = ray.origin.dst2(pos)
-                    Gdx.app.log("MyTag 2","DIS " + dist2 );
+                    Gdx.app.log("MyTag 2", "DIS " + dist2);
 
                     if (distance >= 0f && dist2 > distance || dist2 > Constants.rayDistance) continue
 
@@ -526,9 +507,7 @@ class GameRenderScreen : Screen {
             Gdx.app.log("ERROR", "Adding " + Vector3(x * Constants.chunkSize, 0f, z * Constants.chunkSize))
             chunks2.add(MeshBuilder(Vector3(x * Constants.chunkSize, 0.0f, z * Constants.chunkSize), cubes))
 
-
             val v = MeshBuilder.database.getHeightChunk(x * Constants.chunkSize, z * Constants.chunkSize)
-
             for (a in 0 until v.size) {
 
                 if (v.get(a).y != 0f) {
@@ -581,6 +560,8 @@ class GameRenderScreen : Screen {
 
     fun createChunk(x: Float, z: Float) { //, Vector3 direction
 
+        disableRender = true
+
         for (i in 0 until chunks2.size) {
             chunks2.get(i).needed = false
             chunks2.get(i).checkDirty()
@@ -590,20 +571,24 @@ class GameRenderScreen : Screen {
         for (xx in 0 until size) {
             for (zz in 0 until size) {
                 Gdx.app.log("POSITION", "x ${x + xx - (size - 1) / 2} z ${z + zz - (size - 1) / 2}")
-
                 markAddChunk(x + xx - (size - 1) / 2, z + zz - (size - 1) / 2)
             }
         }
 
-        for (i in 0 until chunks2.size) {
+        disableRender = false
 
-            if (chunks2.get(i).needed == false) {
-                Gdx.app.log("ERROR", "DELETING " + chunks2.get(i).position + " " + chunks2.size)
+// todo this blows up badly but does not seem to be needed?
+//        for (i in 0 until chunks2.size) {
+//
+//            if (chunks2.get(i).needed == false) {
+//                Gdx.app.log("ERROR", "DELETING " + chunks2.get(i).position + " " + chunks2.size)
+//                disableRender = true
+//                val m = chunks2.removeIndex(i)
+//                disableRender = false
+//               // m.dispose()
+//            }
+//        }
 
-                val m = chunks2.removeIndex(i)
-                m.dispose()
-            }
-        }
     }
 
     override fun resize(width: Int, height: Int) {

@@ -7,8 +7,8 @@ object Constants {
 
     // todo comment what these do
     @JvmField val chunkSize = 10 // limited to 13?
-    @JvmField val renderCount: Int = 0
-    @JvmField val cubeCount: Int = 0
+    @JvmField var renderCount: Int = 0
+    @JvmField var cubeCount: Int = 0
 
     @JvmField val rayDistance = 40
 

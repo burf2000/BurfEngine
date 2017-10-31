@@ -101,7 +101,11 @@ class InputController : FirstPersonCameraController {
             isAdding = !isAdding
         }
 
-        Gdx.app.log("INPUT", "Keydown " + keycode)
+        if (keycode == Input.Keys.Q || keycode == Input.Keys.ESCAPE ) {
+            Gdx.app.exit()
+        }
+
+        //Gdx.app.log("INPUT", "Keydown " + keycode)
         return super.keyDown(keycode)
     }
 
@@ -142,9 +146,9 @@ class InputController : FirstPersonCameraController {
         val distance = touchPos.dst(dragPos)
 
         if (distance <= radius) {
-            Gdx.app.log("BUILDING", "Not Dragging " + distance)
+            //Gdx.app.log("BUILDING", "Not Dragging " + distance)
         } else {
-            Gdx.app.log("BUILDING", "Dragging " + distance)
+           // Gdx.app.log("BUILDING", "Dragging " + distance)
             hasMoved = true
 
             var cutoff = width() * 0.75
@@ -166,7 +170,7 @@ class InputController : FirstPersonCameraController {
 
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         hasMoved = false
-        Gdx.app.log("INPUT", "touch Down " + pointer + " " + button)
+        //Gdx.app.log("INPUT", "touch Down " + pointer + " " + button)
 
         touchPos.set(screenX.toFloat(), height() - screenY.toFloat());
 
@@ -178,7 +182,7 @@ class InputController : FirstPersonCameraController {
             gameRenderScreen.getObject(screenX, screenY)
         }
 
-        Gdx.app.log("INPUT", "touch up " + pointer + " " + button)
+        //Gdx.app.log("INPUT", "touch up " + pointer + " " + button)
 
         return super.touchUp(screenX, screenY, pointer, button)
     }
