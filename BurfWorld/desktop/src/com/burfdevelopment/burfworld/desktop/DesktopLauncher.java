@@ -7,9 +7,9 @@ import com.burfdevelopment.burfworld.Activity.GameActivity;
 public class DesktopLauncher {
 	public static void main (String[] arg) {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
-		config.width = 800;
-		config.height = 600;
-
+		config.width = 1024;
+		config.height = 768;
+		config.fullscreen = true;
 		new LwjglApplication(new GameActivity(), config);
 	}
 }
