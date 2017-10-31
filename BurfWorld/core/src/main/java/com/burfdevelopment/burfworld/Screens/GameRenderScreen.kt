@@ -29,8 +29,6 @@ import com.burfdevelopment.burfworld.Constants
 import com.burfdevelopment.burfworld.Entity.MeshBuilder
 import com.burfdevelopment.burfworld.RenderObjects.Skybox
 import com.burfdevelopment.burfworld.Utils.InputController
-import java.util.*
-import java.util.Collections.*
 
 /**
  * Created by burfies1 on 20/10/2017.
@@ -250,12 +248,12 @@ class GameRenderScreen : Screen {
 //            chunks2.get(i).render(shaderProgram)
 //        }
 
-        synchronized (chunks2) {
+        synchronized(chunks2) {
             var i = chunks2.iterator()
             var x = 0
             while (i.hasNext()) {
                 chunks2.get(x).render(shaderProgram)
-                x +=1
+                x += 1
                 i.next()
             }
 
@@ -412,8 +410,7 @@ class GameRenderScreen : Screen {
 
             val v = Vector3(xx.toFloat(), yy.toFloat(), zz.toFloat())
             Gdx.app.log("PART 2", "DID NOT FIND chunk " + v.toString() + " " + Vector3(x, y, z))
-            val m = MeshBuilder(v, Vector3(MathUtils.round(x).toFloat(), MathUtils.round(y).toFloat(), MathUtils.round(z).toFloat()), cubes)
-
+            val m = MeshBuilder(v)
             m.addMesh(Vector3(MathUtils.round(x).toFloat(), MathUtils.round(y).toFloat(), MathUtils.round(z).toFloat()), cubes)
             // create empty chunk
             chunks2.add(m)
@@ -529,7 +526,7 @@ class GameRenderScreen : Screen {
             throw GdxRuntimeException("Couldn't compile shader: " + shaderProgram.log)
         }
 
-        GameRenderHelper.regions = TextureRegion.split(texture, 64, 64)
+        MeshBuilder.regions = TextureRegion.split(texture, 64, 64)
 
 
         //texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
@@ -549,7 +546,7 @@ class GameRenderScreen : Screen {
 
                 modelBuilder.begin()
                 val mpb = modelBuilder.part("box", GL20.GL_TRIANGLES, (VertexAttributes.Usage.Position or VertexAttributes.Usage.Normal or VertexAttributes.Usage.TextureCoordinates).toLong(), Material(ColorAttribute.createDiffuse(Color.BLUE)))
-                mpb.setUVRange(GameRenderHelper.regions[x][y])
+                mpb.setUVRange(MeshBuilder.regions[x][y])
                 mpb.box(1.0f, 1.0f, 1.0f)
                 cube = modelBuilder.end()
                 cube.meshes.get(0).scale(Constants.cubeSize, Constants.cubeSize, Constants.cubeSize)
@@ -575,20 +572,19 @@ class GameRenderScreen : Screen {
             }
         }
 
+        // make a copy of all items we want
+        var chunks3 = Array<MeshBuilder>()
+
+        for (i in 0 until chunks2.size) {
+
+            if (chunks2.get(i).needed == true) {
+                chunks3.add(chunks2.get(i))
+            }
+        }
+
+        chunks2 = chunks3
+
         disableRender = false
-
-// todo this blows up badly but does not seem to be needed?
-//        for (i in 0 until chunks2.size) {
-//
-//            if (chunks2.get(i).needed == false) {
-//                Gdx.app.log("ERROR", "DELETING " + chunks2.get(i).position + " " + chunks2.size)
-//                disableRender = true
-//                val m = chunks2.removeIndex(i)
-//                disableRender = false
-//               // m.dispose()
-//            }
-//        }
-
     }
 
     override fun resize(width: Int, height: Int) {
