@@ -60,11 +60,7 @@ class GameRenderScreen : Screen {
     var isJump: Boolean = false
     var jumping = 0.0f
     private var currentHeight = 15.0f
-    private lateinit var person: Model
     private var disableRender = false
-
-
-    var tmp = Vector3();
 
     fun setupFont() {
         font.color = Color.WHITE
@@ -99,17 +95,6 @@ class GameRenderScreen : Screen {
         //Light..
         lights.set(ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f))
         lights.add(DirectionalLight().set(0.8f, 0.8f, 0.8f, 1f, -0.8f, -0.2f))
-
-        // todo TAKE OUT WHEN COMMITTING TO GITHUB
-        // single blocks
-        modelBuilder.begin()
-        val mpb = modelBuilder.part("box", GL20.GL_TRIANGLES, (VertexAttributes.Usage.Position or VertexAttributes.Usage.Normal or VertexAttributes.Usage.TextureCoordinates).toLong(), Material(ColorAttribute.createDiffuse(Color.BLUE)))
-        mpb.setUVRange(MeshBuilder.regions!![1][1])
-        mpb.box(0f, 9f, 0f, 0.5f, 0.5f, 0.5f)
-        mpb.box(0f, 8f, 0f, 0.5f, 0.5f, 0.5f)
-        person = modelBuilder.end()
-
-
     }
 
     fun setupChunks() {
@@ -251,10 +236,6 @@ class GameRenderScreen : Screen {
             }
 
         }
-
-        // todo TAKE OUT WHEN COMMITTING TO GITHUB
-        //person.getNode("box").translation(Vector3(0f,2f,0f))
-        person.meshes.get(0).render(shaderProgram, GL20.GL_TRIANGLES)
 
         shaderProgram.end()
 

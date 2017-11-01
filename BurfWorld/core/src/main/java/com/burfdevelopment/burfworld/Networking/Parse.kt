@@ -45,7 +45,7 @@ class Parse : Net.HttpResponseListener {
     }
 
     companion object {
-        const val app_id = "Dy95q3VpJ3z5Ppbl7dZhj4xmqY8vrj4Sck5VZWbA"
-        const val app_key = "1EleDLFzhQRRGChnoEhQ39QMWk03yB7O6Qu9lsZv"
+        const val app_id = ""
+        const val app_key = ""
     }
 }
